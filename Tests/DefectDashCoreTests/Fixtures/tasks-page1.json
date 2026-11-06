@@ -1,0 +1,20 @@
+{
+  "data": [
+    {
+      "gid": "1",
+      "name": "Follow up of BUG-184",
+      "notes": "Raised by::\nTester A\n\nExpected result (per the agreed acceptance criteria)::\nReceipt shows payment time\n\nActual result::\nReceipt shows basket time\n\n———\n",
+      "assignee": { "gid": "100", "name": "Dev One" },
+      "due_on": "2026-10-26",
+      "modified_at": "2026-11-04T10:52:52.123Z",
+      "permalink_url": "https://app.asana.com/0/1/1",
+      "custom_fields": [
+        { "gid": "901", "name": "Defect Status", "display_value": "4 · Verify / UAT retest" },
+        { "gid": "902", "name": "Awaiting", "display_value": "Vendor" },
+        { "gid": "903", "name": "Classification", "display_value": null }
+      ],
+      "dependents": [ { "gid": "5001" } ]
+    }
+  ],
+  "next_page": { "offset": "OFF2", "path": "/x", "uri": "https://x" }
+}
