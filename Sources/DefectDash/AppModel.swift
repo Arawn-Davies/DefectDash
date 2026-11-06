@@ -44,6 +44,7 @@ final class AppModel {
     func refresh() async {
         guard !isRefreshing else { return }
         isRefreshing = true
+        needsSettings = false   // re-raised below if the token or section is still missing/rejected
         defer { isRefreshing = false }
 
         let pat: String?
