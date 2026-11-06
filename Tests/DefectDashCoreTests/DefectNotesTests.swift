@@ -18,7 +18,7 @@ final class DefectNotesTests: XCTestCase {
         XCTAssertEqual(notes.sprint, "5")
         XCTAssertEqual(notes.raisedBy, "Tester A")
         XCTAssertEqual(notes.dateRaised, "Oct 23, 2026")
-        XCTAssertEqual(notes.deliverable, "P1S5-D1")
+        XCTAssertEqual(notes.deliverable, "AC-12")
         XCTAssertEqual(notes.testCaseId, "TC-42")
         XCTAssertTrue(notes.steps?.contains("10. Compare") ?? false, notes.steps ?? "nil")
         XCTAssertTrue(notes.steps?.hasPrefix("1. Log in") ?? false)
@@ -38,6 +38,16 @@ final class DefectNotesTests: XCTestCase {
         XCTAssertNil(notes.actual)
         XCTAssertNil(notes.steps)
         XCTAssertEqual(notes.raw, raw)
+    }
+
+    func testHeadingAliases() {
+        let notes = DefectNotes.parse("Reported by:\nAda\n\nExpected behaviour:\nworks\n\nObserved:\nbroken\n\nRepro steps:\n1. go\n\nSeverity:\nHigh\n\nTeam - Sprint:\n7\n")
+        XCTAssertEqual(notes.raisedBy, "Ada")
+        XCTAssertEqual(notes.expected, "works")
+        XCTAssertEqual(notes.actual, "broken")
+        XCTAssertEqual(notes.steps, "1. go")
+        XCTAssertEqual(notes.priority, "High")
+        XCTAssertEqual(notes.sprint, "7")
     }
 
     func testEmptyNotes() {

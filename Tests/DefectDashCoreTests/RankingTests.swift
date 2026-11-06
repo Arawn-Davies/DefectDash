@@ -127,6 +127,18 @@ final class RankingTests: XCTestCase {
         XCTAssertEqual(rank([d], [beta, alpha])[0].worktrees.map(\.system), ["AlphaSystem"])
     }
 
+    func testBoardConfigDrivesClosedAndRetestNumbers() {
+        let board = BoardConfig(closedFromStatus: 9, retestStatus: 6)
+        let ctx = RankingContext(myGid: Self.me, matchSystems: [], board: board, now: T, calendar: utc)
+        let five = makeDefect(status: 5, events: [otherComment(at: T)])
+        XCTAssertEqual(Ranking.rank(defects: [five], worktrees: [], context: ctx)[0].group, .needsYou)
+        let nine = makeDefect(status: 9, events: [otherComment(at: T)])
+        XCTAssertEqual(Ranking.rank(defects: [nine], worktrees: [], context: ctx)[0].group, .closedOnBoard)
+        let retest = makeDefect(status: 6, events: [otherComment(at: T, text: "retested, still broken")])
+        XCTAssertTrue(Ranking.rank(defects: [retest], worktrees: [], context: ctx)[0].flags.contains(.retest))
+        XCTAssertFalse(rank([retest])[0].flags.contains(.retest))   // default board: retest is 4
+    }
+
     func testEmptyMatchSystemsMatchesEverySystem() {
         let d = makeDefect(bug: 44, events: [otherComment(at: T)])
         let beta = makeWorktree(system: "BetaSystem", path: "fix/bug-0044", last: T)

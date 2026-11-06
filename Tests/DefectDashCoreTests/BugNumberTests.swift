@@ -26,6 +26,14 @@ final class BugNumberTests: XCTestCase {
         }
     }
 
+    func testCustomPrefix() {
+        XCTAssertEqual(BugNumber.fromTaskName("Follow up of TKT-0042", prefix: "TKT"), 42)
+        XCTAssertNil(BugNumber.fromTaskName("Follow up of BUG-184", prefix: "TKT"))
+        XCTAssertEqual(BugNumber.fromWorktree(relativePath: "fix/tkt-7", branch: nil, prefix: "TKT"), 7)
+        XCTAssertNil(BugNumber.fromWorktree(relativePath: "fix/bug-7", branch: nil, prefix: "TKT"))
+        XCTAssertEqual(BugNumber.fromTaskName("[GH#12] title", prefix: "GH#"), nil)   // prefix must be followed by "-"
+    }
+
     func testBranchWinsWhenPathHasNone() {
         XCTAssertEqual(BugNumber.fromWorktree(relativePath: "misc/scratch", branch: "fix/bug-212-stripe-iso"), 212)
     }

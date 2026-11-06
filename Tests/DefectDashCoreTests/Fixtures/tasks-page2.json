@@ -9,7 +9,7 @@
       "modified_at": "2026-11-03T09:00:00Z",
       "permalink_url": "https://app.asana.com/0/1/2",
       "custom_fields": [
-        { "gid": "901", "name": "Defect Status", "display_value": null },
+        { "gid": "901", "name": "Status", "display_value": null },
         { "gid": "902", "name": "Awaiting", "display_value": null }
       ],
       "dependents": []

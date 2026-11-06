@@ -38,17 +38,21 @@ public struct Worktree: Sendable, Identifiable, Equatable {
     public let relativePath: String
     public let host: RepoState
     public var submodules: [RepoState]
+    /// Ticket prefix used to extract `bugNumber` (see `BoardConfig.bugPrefix`).
+    public let bugPrefix: String
 
-    public init(path: URL, system: String, relativePath: String, host: RepoState, submodules: [RepoState] = []) {
+    public init(path: URL, system: String, relativePath: String, host: RepoState, submodules: [RepoState] = [],
+                bugPrefix: String = "BUG") {
         self.path = path
         self.system = system
         self.relativePath = relativePath
         self.host = host
         self.submodules = submodules
+        self.bugPrefix = bugPrefix
     }
 
     public var branch: String? { host.branch }
-    public var bugNumber: Int? { BugNumber.fromWorktree(relativePath: relativePath, branch: host.branch) }
+    public var bugNumber: Int? { BugNumber.fromWorktree(relativePath: relativePath, branch: host.branch, prefix: bugPrefix) }
 
     private var allRepos: [RepoState] { [host] + submodules }
 

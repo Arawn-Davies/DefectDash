@@ -70,7 +70,7 @@ final class AppModel {
         let client = AsanaClient(pat: pat)
         let root = settings.worktreesRoot
         let systems = Set(settings.matchSystems)
-        let labels = settings.awaitingLabels
+        let board = settings.board
         let git = self.git
 
         var timings: [(phase: String, seconds: TimeInterval)] = []
@@ -92,11 +92,11 @@ final class AppModel {
                     sourceTitle = try? await client.taskName(gid: source)
                 }
                 return Defect(task: task, stories: try await stories, sourceTitle: sourceTitle, myGid: me.gid,
-                              awaitingLabels: labels)
+                              board: board)
             }
             lap("asana")
 
-            let scanner = WorktreeScanner(git: git, maxConcurrent: 8)
+            let scanner = WorktreeScanner(git: git, maxConcurrent: 8, bugPrefix: board.bugPrefix)
             let hosts = await scanner.scanHosts(root: root)
             lap("git hosts (\(hosts.count))")
             let worktrees = await scanner.enrich(hosts) { wt in
@@ -105,7 +105,7 @@ final class AppModel {
             }
             lap("git submodules (\(worktrees.filter { !$0.submodules.isEmpty }.count) worktrees)")
 
-            let context = RankingContext(myGid: me.gid, matchSystems: systems)
+            let context = RankingContext(myGid: me.gid, matchSystems: systems, board: board)
             let ranked = Ranking.rank(defects: defects, worktrees: worktrees, context: context)
             let matched = Set(ranked.flatMap { $0.worktrees.map(\.id) })
             items = ranked

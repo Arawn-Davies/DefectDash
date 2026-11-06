@@ -5,6 +5,7 @@ import XCTest
 final class DefectTests: XCTestCase {
     static let me = "100"
     let labels = AwaitingLabels(ours: "Vendor", theirs: "Client")
+    var board: BoardConfig { BoardConfig(awaitingLabels: labels) }
     let utc: Calendar = {
         var c = Calendar(identifier: .gregorian)
         c.timeZone = TimeZone(identifier: "UTC")!
@@ -21,7 +22,7 @@ final class DefectTests: XCTestCase {
 
     func testAssemblesFromTask() throws {
         let t = task(name: "Follow up of BUG-184",
-                     fields: [("Defect Status", "4 · Verify / UAT retest"), ("Awaiting", "Vendor"),
+                     fields: [("Status", "4 · Retest"), ("Awaiting", "Vendor"),
                               ("Classification", nil), ("ACME - SPRINT", "5")],
                      dueOn: "2026-10-26", dependents: ["5001"],
                      assignee: AsanaUserRef(gid: Self.me, name: "Dev One"))
@@ -29,7 +30,7 @@ final class DefectTests: XCTestCase {
                                createdBy: AsanaUserRef(gid: Self.me, name: "Dev One"),
                                type: "comment", resourceSubtype: "comment_added", text: "hi")
         let d = Defect(task: t, stories: [story], sourceTitle: "[BUG-184] Receipt time", myGid: Self.me,
-                       awaitingLabels: labels, calendar: utc)
+                       board: board, calendar: utc)
         XCTAssertEqual(d.gid, "t1")
         XCTAssertEqual(d.bugNumber, 184)
         XCTAssertEqual(d.status, 4)
@@ -50,14 +51,14 @@ final class DefectTests: XCTestCase {
 
     func testTitleFallsBackToWorkbenchName() {
         let t = task(name: "Follow up of BUG-184", fields: [], dependents: [])
-        let d = Defect(task: t, stories: [], sourceTitle: nil, myGid: Self.me, awaitingLabels: labels, calendar: utc)
+        let d = Defect(task: t, stories: [], sourceTitle: nil, myGid: Self.me, board: board, calendar: utc)
         XCTAssertEqual(d.title, "Follow up of BUG-184")
         XCTAssertNil(d.sourceGid)
     }
 
     func testNoBugNumberStillBuilds() {
         let t = task(name: "Qualifications import", fields: [])
-        let d = Defect(task: t, stories: [], sourceTitle: nil, myGid: Self.me, awaitingLabels: labels, calendar: utc)
+        let d = Defect(task: t, stories: [], sourceTitle: nil, myGid: Self.me, board: board, calendar: utc)
         XCTAssertNil(d.bugNumber)
         XCTAssertNil(d.status)
         XCTAssertNil(d.awaiting)
@@ -66,8 +67,8 @@ final class DefectTests: XCTestCase {
     }
 
     func testUnknownEnumValuesBecomeNil() {
-        let t = task(name: "Follow up of BUG-1", fields: [("Awaiting", "Partner"), ("Defect Status", "Weird")])
-        let d = Defect(task: t, stories: [], sourceTitle: nil, myGid: Self.me, awaitingLabels: labels, calendar: utc)
+        let t = task(name: "Follow up of BUG-1", fields: [("Awaiting", "Partner"), ("Status", "Weird")])
+        let d = Defect(task: t, stories: [], sourceTitle: nil, myGid: Self.me, board: board, calendar: utc)
         XCTAssertNil(d.awaiting)
         XCTAssertEqual(d.awaitingLabel, "Partner")
         XCTAssertNil(d.status)
@@ -80,6 +81,6 @@ final class DefectTests: XCTestCase {
         XCTAssertNil(labels.classify(nil))
         XCTAssertNil(AwaitingLabels.none.classify("Client"))
         let t = task(name: "Follow up of BUG-2", fields: [("Awaiting", "Client")])
-        XCTAssertEqual(Defect(task: t, stories: [], sourceTitle: nil, myGid: Self.me, awaitingLabels: labels).awaiting, .theirs)
+        XCTAssertEqual(Defect(task: t, stories: [], sourceTitle: nil, myGid: Self.me, board: board).awaiting, .theirs)
     }
 }

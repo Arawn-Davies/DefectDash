@@ -12,17 +12,29 @@ Nothing is written to either.
 
 ## What it expects
 
-- An Asana section whose open tasks are the defects, named like
-  `Follow up of BUG-184` (the number is extracted with `BUG-0*(\d+)`).
+Every name below is a setting ("Board vocabulary" in the Settings sheet);
+the values in brackets are the defaults.
+
+- An Asana section whose open tasks are the defects, with the ticket id in
+  the task name as `<prefix>-NNN` (`BUG`).
 - Optional custom fields on those tasks:
-  - `Defect Status` with options that start with a number
-    (`1 · Submitted` … `4 · Verify / UAT retest`, `5 · Closed`, …).
-  - `Awaiting` with one option for your side and one for the other side.
-    You tell the app which label is which in Settings.
-  - `Classification` (for example `Expected Behaviour`).
-  - any field whose name ends in `SPRINT`.
-- Task notes in the common "Defect Report" form layout (`Expected result::`,
-  `Actual result::`, `Steps to reproduce::`, …). Anything else is shown raw.
+  - a status field (`Status`) whose options start with a number
+    (`1 · Open` … `5 · Closed`). Higher numbers rank first; numbers at or
+    above the "closed from" value (`5`) are closed-on-the-board; the
+    "retest" number (`4`) is the one where a "retest" comment raises the
+    RETEST tag and a move back from it raises BOUNCED.
+  - an "awaiting" field (`Awaiting`) with one option for your side and one
+    for the other side; you name both labels.
+  - a classification field (`Classification`) whose value
+    `Expected Behaviour` raises the EXPECTED BEHAVIOUR tag.
+  - a sprint field, matched as a name suffix (`Sprint`).
+  - optionally, a regex for comments relayed from another tracker, with
+    group 1 capturing the real author (off by default).
+- Task notes in a bug-report form layout with headings such as
+  `Expected result::`, `Actual result::`, `Steps to reproduce::`,
+  `Environment::`, `Priority:`; common variants (`Expected behaviour`,
+  `Observed`, `Repro steps`, `Severity`, `Reported by`, …) are accepted.
+  Anything else is shown raw.
 - A worktrees root (default `~/src/wtrees`) laid out as
   `<root>/<System>/<anything>/...`, where a directory containing `.git` is a
   worktree. Worktrees are matched to defects by `bug-NNN` in the directory
@@ -81,7 +93,8 @@ Gear icon in the toolbar (or the menu-bar item):
 
 - Asana token (**Test** calls `/users/me` and shows your name).
 - Section gid of the defects list, and optionally the project gid.
-- The two `Awaiting` labels: yours and the other side's.
+- Board vocabulary: ticket prefix, field names, status numbers, the two
+  "awaiting" labels, the optional relay regex (see above).
 - Worktrees root and, optionally, which systems may match defects
   (empty = all).
 - Refresh interval in minutes (1–30, default 5).

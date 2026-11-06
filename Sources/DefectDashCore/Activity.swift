@@ -33,21 +33,19 @@ public enum Activity {
         "task_due_time_approaching_story", "story_reaction_added",
     ]
 
-    /// A comment relayed from the other side's tracker: "<Org> comment on BUG-184 - Tester A, 10/28/2026, 03:01:27 PM\n<body>"
-    private static var relayPattern: Regex<(Substring, Substring)> {
-        /^\S+ comment on BUG-\d+ - (.+?), \d{1,2}\/\d{1,2}\/\d{4}, [^\n]*\n/
-    }
     private static var relayRefPattern: Regex<Substring> { /\n+ref \d+\s*$/ }
     private static var profileMentionPattern: Regex<Substring> { /https:\/\/app\.asana\.com\/\S*?\/profile\/\d+/ }
     private static var statusNumberPattern: Regex<(Substring, Substring)> { /^\s*(\d+)\s*[·.]/ }
 
-    /// Drops noise; sets isMine by gid; parses the relay prefix into author + stripped text. Newest first.
-    public static func events(from stories: [AsanaStory], myGid: String) -> [ActivityEvent] {
-        stories
+    /// Drops noise; sets isMine by gid; parses relayed comments (see `BoardConfig.relayPattern`) into the real
+    /// author plus stripped text. Newest first.
+    public static func events(from stories: [AsanaStory], myGid: String, board: BoardConfig = .default) -> [ActivityEvent] {
+        let relay = board.relayRegex
+        return stories
             .filter { !noiseSubtypes.contains($0.resourceSubtype) }
             .map { story in
                 ActivityEvent(id: story.gid, at: story.createdAt, byGid: story.createdBy?.gid, byName: story.createdBy?.name,
-                              kind: kind(of: story), isMine: story.createdBy?.gid == myGid)
+                              kind: kind(of: story, board: board, relay: relay), isMine: story.createdBy?.gid == myGid)
             }
             .sorted { $0.at > $1.at }
     }
@@ -60,10 +58,12 @@ public enum Activity {
         events.first { $0.isMine }
     }
 
-    /// true if any Defect Status change goes from 4 back to 3 or 2.
-    public static func bounced(_ events: [ActivityEvent]) -> Bool {
+    /// true if any status change goes from the retest status back to a lower (earlier) status: a failed retest.
+    public static func bounced(_ events: [ActivityEvent], retestStatus: Int = 4) -> Bool {
         events.contains {
-            if case let .defectStatusChanged(from, to) = $0.kind, from == 4, let to, to == 3 || to == 2 { return true }
+            if case let .defectStatusChanged(from, to) = $0.kind, from == retestStatus, let to, to < retestStatus {
+                return true
+            }
             return false
         }
     }
@@ -76,20 +76,20 @@ public enum Activity {
 
     // MARK: - Private
 
-    private static func kind(of story: AsanaStory) -> ActivityKind {
+    private static func kind(of story: AsanaStory, board: BoardConfig, relay: Regex<AnyRegexOutput>?) -> ActivityKind {
         switch story.resourceSubtype {
         case "comment_added":
-            return comment(story)
+            return comment(story, relay: relay)
         case "enum_custom_field_changed":
-            switch story.customField?.name {
-            case "Awaiting":
+            let field = story.customField?.name ?? ""
+            if field.caseInsensitiveCompare(board.awaitingField) == .orderedSame {
                 return .awaitingChanged(from: story.oldEnumValue?.name, to: story.newEnumValue?.name)
-            case "Defect Status":
+            }
+            if field.caseInsensitiveCompare(board.statusField) == .orderedSame {
                 return .defectStatusChanged(from: parseStatusNumber(story.oldEnumValue?.name),
                                             to: parseStatusNumber(story.newEnumValue?.name))
-            default:
-                return .other(story.resourceSubtype)
             }
+            return .other(story.resourceSubtype)
         case "assigned":
             return .assigned
         case "attachment_added":
@@ -99,12 +99,13 @@ public enum Activity {
         }
     }
 
-    private static func comment(_ story: AsanaStory) -> ActivityKind {
+    private static func comment(_ story: AsanaStory, relay: Regex<AnyRegexOutput>?) -> ActivityKind {
         let raw = story.text ?? ""
-        if let match = raw.firstMatch(of: relayPattern) {
+        if let relay, let match = raw.firstMatch(of: relay), match.range.lowerBound == raw.startIndex,
+           match.output.count > 1, let author = match.output[1].substring {
             var body = String(raw[match.range.upperBound...])
             body = body.replacing(relayRefPattern, with: "")
-            return .comment(author: String(match.1), text: clean(body), viaRelay: true)
+            return .comment(author: String(author).trimmingCharacters(in: .whitespaces), text: clean(body), viaRelay: true)
         }
         return .comment(author: story.createdBy?.name ?? "Unknown", text: clean(raw), viaRelay: false)
     }

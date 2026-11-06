@@ -3,10 +3,12 @@ import Foundation
 public struct WorktreeScanner: Sendable {
     public let git: GitRunning
     public let maxConcurrent: Int
+    public let bugPrefix: String
 
-    public init(git: GitRunning, maxConcurrent: Int = 8) {
+    public init(git: GitRunning, maxConcurrent: Int = 8, bugPrefix: String = "BUG") {
         self.git = git
         self.maxConcurrent = max(1, maxConcurrent)
+        self.bugPrefix = bugPrefix
     }
 
     // MARK: - Enumeration
@@ -150,7 +152,8 @@ public struct WorktreeScanner: Sendable {
         let entries = enumerate(root: root)
         return await Self.mapConcurrently(entries, limit: maxConcurrent) { entry in
             let host = await readHost(entry.path)
-            return Worktree(path: entry.path, system: entry.system, relativePath: entry.relativePath, host: host)
+            return Worktree(path: entry.path, system: entry.system, relativePath: entry.relativePath, host: host,
+                            bugPrefix: bugPrefix)
         }
     }
 

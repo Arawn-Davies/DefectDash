@@ -70,12 +70,15 @@ public struct RankingContext: Sendable {
     public let myGid: String
     /// Systems whose worktrees may be joined to defects; empty means every system.
     public let matchSystems: Set<String>
+    public let board: BoardConfig
     public let now: Date
     public let calendar: Calendar
 
-    public init(myGid: String, matchSystems: Set<String>, now: Date = Date(), calendar: Calendar = .current) {
+    public init(myGid: String, matchSystems: Set<String>, board: BoardConfig = .default, now: Date = Date(),
+                calendar: Calendar = .current) {
         self.myGid = myGid
         self.matchSystems = matchSystems
+        self.board = board
         self.now = now
         self.calendar = calendar
     }
@@ -111,7 +114,7 @@ public enum Ranking {
         let matched = defect.bugNumber.map { bug in candidates.filter { $0.bugNumber == bug } } ?? []
         let primary = matched.max { ($0.lastCommitAt ?? .distantPast) < ($1.lastCommitAt ?? .distantPast) }
 
-        let closed = defect.status.map { $0 >= 5 } ?? false
+        let closed = defect.status.map { $0 >= context.board.closedFromStatus } ?? false
         let awaiting = defect.awaiting ?? .ours
         let assignedToMe = defect.assignee?.gid == context.myGid
 
@@ -136,9 +139,9 @@ public enum Ranking {
         }
 
         var flags: Flags = []
-        let bounced = Activity.bounced(defect.events)
+        let bounced = Activity.bounced(defect.events, retestStatus: context.board.retestStatus)
         if let newest = newestComment(defect.events), newest.text.firstMatch(of: retestPattern) != nil,
-           defect.status == 4 || bounced {
+           defect.status == context.board.retestStatus || bounced {
             flags.insert(.retest)
         }
         if defect.classification == "Expected Behaviour" {
@@ -166,15 +169,10 @@ public enum Ranking {
 
     // MARK: - Ordering
 
-    /// 4 → 3 → 2 → 1 → unset.
+    /// Further along first (higher number), unset last.
     private static func statusRank(_ status: Int?) -> Int {
-        switch status {
-        case 4: 0
-        case 3: 1
-        case 2: 2
-        case 1: 3
-        default: 4
-        }
+        guard let status else { return Int.max }
+        return -status
     }
 
     private static func latestActivity(_ item: WorkItem) -> Date {

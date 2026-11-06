@@ -71,25 +71,27 @@ public struct Defect: Sendable, Identifiable, Equatable {
     }
 
     public init(task: AsanaTask, stories: [AsanaStory], sourceTitle: String?, myGid: String,
-                awaitingLabels: AwaitingLabels, calendar: Calendar = .current) {
+                board: BoardConfig, calendar: Calendar = .current) {
         func field(_ name: String) -> String? {
             task.customFields.first { $0.name.caseInsensitiveCompare(name) == .orderedSame }?.displayValue
         }
-        let awaitingLabel = field("Awaiting")
-        let awaiting = awaitingLabels.classify(awaitingLabel)
+        let awaitingLabel = field(board.awaitingField)
+        let awaiting = board.awaitingLabels.classify(awaitingLabel)
         if let awaitingLabel, !awaitingLabel.isEmpty, awaiting == nil {
-            Defect.log("unknown Awaiting value \"\(awaitingLabel)\" on task \(task.gid)")
+            Defect.log("unknown \(board.awaitingField) value \"\(awaitingLabel)\" on task \(task.gid)")
         }
-        let statusLabel = field("Defect Status")
+        let statusLabel = field(board.statusField)
         let status = Activity.parseStatusNumber(statusLabel)
         if let statusLabel, !statusLabel.isEmpty, status == nil {
-            Defect.log("unknown Defect Status value \"\(statusLabel)\" on task \(task.gid)")
+            Defect.log("unknown \(board.statusField) value \"\(statusLabel)\" on task \(task.gid)")
         }
-        // Any custom field whose name ends in "sprint" (e.g. "Client - SPRINT").
-        let sprint = task.customFields.first { $0.name.uppercased().hasSuffix("SPRINT") }?.displayValue
+        // Any custom field whose name ends in the sprint field name (e.g. "Client - SPRINT").
+        let sprintSuffix = board.sprintField.uppercased()
+        let sprint = sprintSuffix.isEmpty ? nil
+            : task.customFields.first { $0.name.uppercased().hasSuffix(sprintSuffix) }?.displayValue
         self.init(
             gid: task.gid,
-            bugNumber: BugNumber.fromTaskName(task.name),
+            bugNumber: BugNumber.fromTaskName(task.name, prefix: board.bugPrefix),
             title: sourceTitle ?? task.name,
             workbenchName: task.name,
             permalink: task.permalinkUrl,
@@ -98,13 +100,13 @@ public struct Defect: Sendable, Identifiable, Equatable {
             statusLabel: statusLabel,
             awaiting: awaiting,
             awaitingLabel: awaitingLabel,
-            classification: field("Classification"),
+            classification: field(board.classificationField),
             sprint: sprint,
             assignee: task.assignee,
             dueOn: task.dueOn.flatMap { Defect.parseDay($0, calendar: calendar) },
             modifiedAt: task.modifiedAt,
             notes: DefectNotes.parse(task.notes ?? ""),
-            events: Activity.events(from: stories, myGid: myGid)
+            events: Activity.events(from: stories, myGid: myGid, board: board)
         )
     }
 

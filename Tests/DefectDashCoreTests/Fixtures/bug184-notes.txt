@@ -6,9 +6,9 @@ Tester A
 Date raised::
 Oct 23, 2026
 
-Deliverable / acceptance criterion affected:
+Acceptance criterion affected:
 (paste backlog task link, e.g. P1S1-03):
-P1S5-D1
+AC-12
 
 Environment::
 Staging

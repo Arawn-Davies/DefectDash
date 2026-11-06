@@ -17,6 +17,14 @@ struct SettingsView: View {
     @State private var ourSide = ""
     @State private var theirSide = ""
     @State private var refreshMinutes = Settings.defaultRefreshMinutes
+    @State private var bugPrefix = ""
+    @State private var statusField = ""
+    @State private var awaitingField = ""
+    @State private var classificationField = ""
+    @State private var sprintField = ""
+    @State private var closedFromStatus = BoardConfig.default.closedFromStatus
+    @State private var retestStatus = BoardConfig.default.retestStatus
+    @State private var relayPattern = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -33,8 +41,20 @@ struct SettingsView: View {
                     }
                     TextField("Section gid (the defects list)", text: $sectionGid)
                     TextField("Project gid (optional)", text: $projectGid)
+                }
+                Section("Board vocabulary") {
+                    TextField("Ticket prefix", text: $bugPrefix, prompt: Text("BUG"))
+                    TextField("Status field (options start with a number)", text: $statusField, prompt: Text("Status"))
+                    Stepper("Retest status number: \(retestStatus)", value: $retestStatus, in: 0...20)
+                    Stepper("Closed from status number: \(closedFromStatus)", value: $closedFromStatus, in: 0...20)
+                    TextField("Awaiting field", text: $awaitingField, prompt: Text("Awaiting"))
                     TextField("Awaiting label for your side", text: $ourSide, prompt: Text("e.g. Vendor"))
                     TextField("Awaiting label for the other side", text: $theirSide, prompt: Text("e.g. Client"))
+                    TextField("Classification field", text: $classificationField, prompt: Text("Classification"))
+                    TextField("Sprint field (suffix match)", text: $sprintField, prompt: Text("Sprint"))
+                    TextField("Relayed comment regex (group 1 = author)", text: $relayPattern,
+                              prompt: Text("optional, e.g. ^Client comment - (.+?), [^\\n]*\\n"))
+                        .font(.system(.body, design: .monospaced))
                 }
                 Section("Worktrees") {
                     HStack {
@@ -55,7 +75,7 @@ struct SettingsView: View {
             }
             .padding()
         }
-        .frame(width: 520, height: 520)
+        .frame(width: 560, height: 720)
         .onAppear(perform: load)
     }
 
@@ -68,6 +88,15 @@ struct SettingsView: View {
         ourSide = s.ourSideLabel
         theirSide = s.theirSideLabel
         refreshMinutes = s.refreshMinutes
+        let b = s.board
+        bugPrefix = b.bugPrefix
+        statusField = b.statusField
+        awaitingField = b.awaitingField
+        classificationField = b.classificationField
+        sprintField = b.sprintField
+        closedFromStatus = b.closedFromStatus
+        retestStatus = b.retestStatus
+        relayPattern = b.relayPattern
         hasStoredToken = ((try? model.keychain.load()) ?? nil).map { !$0.isEmpty } ?? false
     }
 
@@ -77,9 +106,18 @@ struct SettingsView: View {
         s.sectionGid = sectionGid
         s.worktreesRoot = URL(fileURLWithPath: (worktreesRoot as NSString).expandingTildeInPath, isDirectory: true)
         s.matchSystems = matchSystems.split(separator: ",").map { String($0) }
-        s.ourSideLabel = ourSide
-        s.theirSideLabel = theirSide
         s.refreshMinutes = refreshMinutes
+        s.board = BoardConfig(
+            bugPrefix: bugPrefix.isEmpty ? BoardConfig.default.bugPrefix : bugPrefix,
+            statusField: statusField.isEmpty ? BoardConfig.default.statusField : statusField,
+            awaitingField: awaitingField.isEmpty ? BoardConfig.default.awaitingField : awaitingField,
+            classificationField: classificationField.isEmpty ? BoardConfig.default.classificationField : classificationField,
+            sprintField: sprintField.isEmpty ? BoardConfig.default.sprintField : sprintField,
+            awaitingLabels: AwaitingLabels(ours: ourSide, theirs: theirSide),
+            closedFromStatus: closedFromStatus,
+            retestStatus: retestStatus,
+            relayPattern: relayPattern
+        )
         let token = pat.trimmingCharacters(in: .whitespacesAndNewlines)
         if !token.isEmpty {
             do {

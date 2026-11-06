@@ -29,6 +29,14 @@ public final class Settings: @unchecked Sendable {
         static let hideDimmed = "dd.hideDimmed"
         static let ourSideLabel = "dd.ourSideLabel"
         static let theirSideLabel = "dd.theirSideLabel"
+        static let bugPrefix = "dd.bugPrefix"
+        static let statusField = "dd.statusField"
+        static let awaitingField = "dd.awaitingField"
+        static let classificationField = "dd.classificationField"
+        static let sprintField = "dd.sprintField"
+        static let closedFromStatus = "dd.closedFromStatus"
+        static let retestStatus = "dd.retestStatus"
+        static let relayPattern = "dd.relayPattern"
     }
 
     /// Asana project gid (informational; the section gid drives the query).
@@ -87,6 +95,43 @@ public final class Settings: @unchecked Sendable {
     }
 
     public var awaitingLabels: AwaitingLabels { AwaitingLabels(ours: ourSideLabel, theirs: theirSideLabel) }
+
+    /// The board vocabulary. Unset keys fall back to `BoardConfig.default`.
+    public var board: BoardConfig {
+        get {
+            let d = BoardConfig.default
+            func string(_ key: String, _ fallback: String) -> String {
+                let value = trimmed(defaults.string(forKey: key))
+                return value.isEmpty ? fallback : value
+            }
+            func int(_ key: String, _ fallback: Int) -> Int {
+                defaults.object(forKey: key) == nil ? fallback : max(0, defaults.integer(forKey: key))
+            }
+            return BoardConfig(
+                bugPrefix: string(Key.bugPrefix, d.bugPrefix),
+                statusField: string(Key.statusField, d.statusField),
+                awaitingField: string(Key.awaitingField, d.awaitingField),
+                classificationField: string(Key.classificationField, d.classificationField),
+                sprintField: string(Key.sprintField, d.sprintField),
+                awaitingLabels: awaitingLabels,
+                closedFromStatus: int(Key.closedFromStatus, d.closedFromStatus),
+                retestStatus: int(Key.retestStatus, d.retestStatus),
+                relayPattern: trimmed(defaults.string(forKey: Key.relayPattern))
+            )
+        }
+        set {
+            defaults.set(newValue.bugPrefix.trimmingCharacters(in: .whitespaces), forKey: Key.bugPrefix)
+            defaults.set(newValue.statusField.trimmingCharacters(in: .whitespaces), forKey: Key.statusField)
+            defaults.set(newValue.awaitingField.trimmingCharacters(in: .whitespaces), forKey: Key.awaitingField)
+            defaults.set(newValue.classificationField.trimmingCharacters(in: .whitespaces), forKey: Key.classificationField)
+            defaults.set(newValue.sprintField.trimmingCharacters(in: .whitespaces), forKey: Key.sprintField)
+            defaults.set(newValue.closedFromStatus, forKey: Key.closedFromStatus)
+            defaults.set(newValue.retestStatus, forKey: Key.retestStatus)
+            defaults.set(newValue.relayPattern.trimmingCharacters(in: .whitespaces), forKey: Key.relayPattern)
+            ourSideLabel = newValue.awaitingLabels.ours
+            theirSideLabel = newValue.awaitingLabels.theirs
+        }
+    }
 
     private func clamp(_ minutes: Int) -> Int {
         min(max(minutes, Self.refreshRange.lowerBound), Self.refreshRange.upperBound)

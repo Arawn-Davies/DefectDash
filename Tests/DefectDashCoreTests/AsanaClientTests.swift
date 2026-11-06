@@ -142,7 +142,7 @@ final class AsanaClientTests: XCTestCase {
         let client = makeClient()
         let tasks = try await client.openTasks(inSection: "S")
         XCTAssertEqual(tasks.map(\.gid), ["1", "2"])
-        XCTAssertEqual(tasks[0].customFields.first { $0.name == "Defect Status" }?.displayValue, "4 · Verify / UAT retest")
+        XCTAssertEqual(tasks[0].customFields.first { $0.name == "Status" }?.displayValue, "4 · Retest")
         XCTAssertEqual(tasks[0].dueOn, "2026-10-26")
         XCTAssertEqual(tasks[0].dependents?.first?.gid, "5001")
         XCTAssertEqual(tasks[0].assignee, AsanaUserRef(gid: "100", name: "Dev One"))

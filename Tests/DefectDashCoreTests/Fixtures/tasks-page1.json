@@ -9,7 +9,7 @@
       "modified_at": "2026-11-04T10:52:52.123Z",
       "permalink_url": "https://app.asana.com/0/1/1",
       "custom_fields": [
-        { "gid": "901", "name": "Defect Status", "display_value": "4 · Verify / UAT retest" },
+        { "gid": "901", "name": "Status", "display_value": "4 · Retest" },
         { "gid": "902", "name": "Awaiting", "display_value": "Vendor" },
         { "gid": "903", "name": "Classification", "display_value": null }
       ],

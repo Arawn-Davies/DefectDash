@@ -41,6 +41,18 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(defaults.integer(forKey: "dd.refreshMinutes"), 7)
     }
 
+    func testBoardConfigRoundTrip() {
+        let settings = Settings(defaults: defaults)
+        XCTAssertEqual(settings.board, .default)
+        let custom = BoardConfig(bugPrefix: "TKT", statusField: "Stage", awaitingField: "Ball with",
+                                 classificationField: "Kind", sprintField: "Iteration",
+                                 awaitingLabels: AwaitingLabels(ours: "Us", theirs: "Them"),
+                                 closedFromStatus: 7, retestStatus: 5, relayPattern: "^X (.+?)\n")
+        settings.board = custom
+        XCTAssertEqual(Settings(defaults: defaults).board, custom)
+        XCTAssertEqual(Settings(defaults: defaults).ourSideLabel, "Us")
+    }
+
     func testRoundTripAndTrimming() {
         let settings = Settings(defaults: defaults)
         settings.sectionGid = " 42 "

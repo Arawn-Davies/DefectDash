@@ -22,33 +22,44 @@ public struct DefectNotes: Sendable, Equatable {
         self.raw = raw
     }
 
-    private enum Key: String, CaseIterable {
-        case raisedBy = "Raised by"
-        case dateRaised = "Date raised"
-        case deliverable = "Deliverable / acceptance criterion affected"
-        case environment = "Environment"
-        case browser = "Browser / device"
-        case steps = "Steps to reproduce"
-        case expected = "Expected result"
-        case actual = "Actual result"
-        case testCaseId = "Test Case ID"
-        case priority = "Priority"
-        case sprint = "SPRINT"   // also matches "<Org> - SPRINT"
+    private enum Key: CaseIterable {
+        case raisedBy, dateRaised, deliverable, environment, browser, steps, expected, actual, testCaseId, priority, sprint
+
+        /// Accepted heading spellings, case-insensitive. The sprint heading is any label ending in "sprint".
+        var aliases: [String] {
+            switch self {
+            case .raisedBy: ["Raised by", "Reported by", "Reporter", "Submitted by"]
+            case .dateRaised: ["Date raised", "Date reported", "Reported on", "Date"]
+            case .deliverable: ["Deliverable / acceptance criterion affected", "Acceptance criterion affected",
+                                "Acceptance criterion", "Acceptance criteria", "Deliverable", "Requirement", "Feature"]
+            case .environment: ["Environment", "Env"]
+            case .browser: ["Browser / device", "Browser", "Device", "Platform"]
+            case .steps: ["Steps to reproduce", "Reproduction steps", "Repro steps", "Steps"]
+            case .expected: ["Expected result", "Expected results", "Expected behaviour", "Expected behavior", "Expected"]
+            case .actual: ["Actual result", "Actual results", "Actual behaviour", "Actual behavior", "Actual", "Observed"]
+            case .testCaseId: ["Test Case ID", "Test case", "Test ID"]
+            case .priority: ["Priority", "Severity"]
+            case .sprint: ["Sprint"]
+            }
+        }
     }
 
-    /// A heading line: a known label (the sprint label may carry an "<Org> - " prefix), optional `(parenthetical)`,
-    /// then one or two colons.
+    /// A heading line: a known label, optional `(parenthetical)`, then one or two colons.
     private static var headingPattern: Regex<(Substring, Substring)> {
-        let alternatives = Key.allCases.map { key in
-            let escaped = NSRegularExpression.escapedPattern(for: key.rawValue)
-            return key == .sprint ? "(?:[A-Za-z0-9]+ - )?\(escaped)" : escaped
-        }.joined(separator: "|")
-        return try! Regex("^(\(alternatives))\\s*(?:\\([^)]*\\))?\\s*:{1,2}\\s*$").ignoresCase()
+        var alternatives = Key.allCases.filter { $0 != .sprint }
+            .flatMap(\.aliases)
+            .sorted { $0.count > $1.count }
+            .map { NSRegularExpression.escapedPattern(for: $0) }
+        alternatives.append("(?:[A-Za-z0-9]+ - )?sprint")
+        return try! Regex("^(\(alternatives.joined(separator: "|")))\\s*(?:\\([^)]*\\))?\\s*:{1,2}\\s*$").ignoresCase()
     }
 
     private static func key(forHeading heading: Substring) -> Key? {
-        if heading.uppercased().hasSuffix(Key.sprint.rawValue) { return .sprint }
-        return Key.allCases.first { $0.rawValue.caseInsensitiveCompare(String(heading)) == .orderedSame }
+        let text = String(heading)
+        if text.uppercased().hasSuffix("SPRINT") { return .sprint }
+        return Key.allCases.first { key in
+            key.aliases.contains { $0.caseInsensitiveCompare(text) == .orderedSame }
+        }
     }
 
     /// A horizontal rule line: three or more em dashes or hyphens.
