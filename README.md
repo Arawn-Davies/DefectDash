@@ -45,6 +45,25 @@ the values in brackets are the defaults.
 - macOS 15 or later, Xcode 27 command-line toolchain (Swift 6.4).
 - No third-party packages.
 
+## Install a release build
+
+Download `DefectDash-<version>-macos-arm64.zip` from the
+[releases page](https://github.com/Arawn-Davies/DefectDash/releases),
+unzip it, and copy the app into Applications. The bundle is ad-hoc signed,
+so macOS quarantines it on download; remove the flag once and it opens
+normally:
+
+```sh
+unzip -q ~/Downloads/DefectDash-*-macos-arm64.zip -d ~/Downloads
+cp -R ~/Downloads/DefectDash.app /Applications/
+xattr -d com.apple.quarantine /Applications/DefectDash.app
+open /Applications/DefectDash.app
+```
+
+On first launch the Settings sheet opens: paste your Asana token, set the
+section gid and board vocabulary (below), save. macOS asks once whether the
+app may read the token from the Keychain; choose **Always Allow**.
+
 ## Build and run
 
 ```sh
