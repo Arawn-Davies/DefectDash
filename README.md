@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo.png" alt="DefectDash" width="640"></p>
+
 # DefectDash
 
 A small native macOS window that joins the open defects in one Asana section
@@ -97,6 +99,11 @@ Gear icon in the toolbar (or the menu-bar item):
 Tags: `RETEST`, `EXPECTED BEHAVIOUR`, `OVERDUE`, `BOUNCED`, `NO WORKTREE`,
 `NEEDS YOU`. Below the groups, "Other worktrees" lists dirty or unpushed
 worktrees that matched no defect.
+
+## Icon and logo
+
+`assets/icon.svg` and `assets/logo.svg` are the sources; `scripts/make-icon.sh`
+re-renders `AppIcon.icns` and the PNGs with stock macOS tools.
 
 ## Diagnostics
 

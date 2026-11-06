@@ -16,7 +16,7 @@ let package = Package(
         .executableTarget(
             name: "DefectDash",
             dependencies: ["DefectDashCore"],
-            exclude: ["Resources/Info.plist"],
+            exclude: ["Resources"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .testTarget(

@@ -14,6 +14,7 @@ rm -rf "$app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 cp "$bin_dir/DefectDash" "$app/Contents/MacOS/DefectDash"
 cp "Sources/DefectDash/Resources/Info.plist" "$app/Contents/Info.plist"
+cp "Sources/DefectDash/Resources/AppIcon.icns" "$app/Contents/Resources/AppIcon.icns"
 printf 'APPL????' > "$app/Contents/PkgInfo"
 
 IDENTITY="${SIGN_IDENTITY:-DefectDash Dev}"
