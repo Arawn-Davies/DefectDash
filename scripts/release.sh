@@ -49,11 +49,16 @@ cask "defectdash" do
   app "DefectDash.app"
   binary "defectdash"
 
-  # The bundle is ad-hoc signed and not notarized; without this Gatekeeper refuses to open it.
+  # Both binaries are ad-hoc signed and not notarized; without this Gatekeeper refuses to run them.
+  # The app lives in appdir; the terminal binary stays in the Caskroom and is symlinked into bin.
   postflight do
     system_command "/usr/bin/xattr",
                    args: ["-dr", "com.apple.quarantine", "#{appdir}/DefectDash.app"],
                    sudo: false
+    system_command "/usr/bin/xattr",
+                   args: ["-d", "com.apple.quarantine", "#{staged_path}/defectdash"],
+                   sudo: false,
+                   must_succeed: false
   end
 
   zap trash: "~/Library/Preferences/io.github.arawn-davies.defectdash.plist"
