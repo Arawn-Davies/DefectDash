@@ -56,8 +56,15 @@ brew install --cask arawn-davies/defectdash/defectdash
 ```
 
 Installs `DefectDash.app` into Applications and the `defectdash` terminal UI
-onto your path, and clears the quarantine flag (the build is ad-hoc signed,
-not notarized). `brew upgrade --cask defectdash` updates both.
+onto your path, and clears the quarantine flag on both (the build is ad-hoc
+signed, not notarized). If Gatekeeper still refuses the terminal binary, the
+real file lives in the Caskroom, not behind the `bin` symlink:
+
+```sh
+xattr -d com.apple.quarantine "$(brew --prefix)/Caskroom/defectdash/$(brew list --cask --versions defectdash | cut -d' ' -f2)/defectdash"
+```
+
+`brew upgrade --cask defectdash` updates both.
 
 ### Manual
 
@@ -69,6 +76,7 @@ contains the app and the `defectdash` binary:
 unzip -q ~/Downloads/DefectDash-*-macos-arm64.zip -d ~/Downloads/DefectDash
 cp -R ~/Downloads/DefectDash/DefectDash.app /Applications/
 xattr -dr com.apple.quarantine /Applications/DefectDash.app
+xattr -d com.apple.quarantine ~/Downloads/DefectDash/defectdash
 install -m 755 ~/Downloads/DefectDash/defectdash /usr/local/bin/defectdash
 open /Applications/DefectDash.app
 ```
