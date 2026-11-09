@@ -1,4 +1,4 @@
-.PHONY: build test app run import-pat tui run-tui install-tui clean
+.PHONY: build test app run import-pat tui run-tui install-tui dist clean
 
 APP = build/DefectDash.app
 PREFIX ?= /usr/local
@@ -36,6 +36,18 @@ install-tui: tui
 	install -d "$(PREFIX)/bin"
 	install -m 755 build/defectdash "$(PREFIX)/bin/defectdash"
 	@echo "installed $(PREFIX)/bin/defectdash"
+
+# Release archive with the app and the terminal binary side by side (what the Homebrew cask installs).
+# Usage: make dist VERSION=0.0.4  -> build/DefectDash-0.0.4-macos-arm64.zip
+dist: app tui
+	@test -n "$(VERSION)" || { echo "usage: make dist VERSION=x.y.z"; exit 2; }
+	rm -rf build/dist && mkdir -p build/dist
+	ditto $(APP) build/dist/DefectDash.app
+	cp build/defectdash build/dist/defectdash
+	codesign --force --sign - build/dist/defectdash
+	rm -f build/DefectDash-$(VERSION)-macos-arm64.zip
+	cd build/dist && ditto -c -k --keepParent --sequesterRsrc . ../DefectDash-$(VERSION)-macos-arm64.zip
+	@shasum -a 256 build/DefectDash-$(VERSION)-macos-arm64.zip
 
 clean:
 	rm -rf .build build

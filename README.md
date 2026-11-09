@@ -45,18 +45,30 @@ the values in brackets are the defaults.
 - macOS 15 or later, Xcode 27 command-line toolchain (Swift 6.4).
 - No third-party packages.
 
-## Install a release build
+## Install
 
-Download `DefectDash-<version>-macos-arm64.zip` from the
-[releases page](https://github.com/Arawn-Davies/DefectDash/releases),
-unzip it, and copy the app into Applications. The bundle is ad-hoc signed,
-so macOS quarantines it on download; remove the flag once and it opens
-normally:
+### Homebrew
 
 ```sh
-unzip -q ~/Downloads/DefectDash-*-macos-arm64.zip -d ~/Downloads
-cp -R ~/Downloads/DefectDash.app /Applications/
-xattr -d com.apple.quarantine /Applications/DefectDash.app
+brew tap Arawn-Davies/defectdash
+brew install --cask defectdash
+```
+
+Installs `DefectDash.app` into Applications and the `defectdash` terminal UI
+onto your path, and clears the quarantine flag (the build is ad-hoc signed,
+not notarized). `brew upgrade --cask defectdash` updates both.
+
+### Manual
+
+Download `DefectDash-<version>-macos-arm64.zip` from the
+[releases page](https://github.com/Arawn-Davies/DefectDash/releases). It
+contains the app and the `defectdash` binary:
+
+```sh
+unzip -q ~/Downloads/DefectDash-*-macos-arm64.zip -d ~/Downloads/DefectDash
+cp -R ~/Downloads/DefectDash/DefectDash.app /Applications/
+xattr -dr com.apple.quarantine /Applications/DefectDash.app
+install -m 755 ~/Downloads/DefectDash/defectdash /usr/local/bin/defectdash
 open /Applications/DefectDash.app
 ```
 
