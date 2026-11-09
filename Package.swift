@@ -7,6 +7,7 @@ let package = Package(
     products: [
         .library(name: "DefectDashCore", targets: ["DefectDashCore"]),
         .executable(name: "DefectDash", targets: ["DefectDash"]),
+        .executable(name: "defectdash", targets: ["DefectDashTUI"]),
     ],
     targets: [
         .target(
@@ -17,6 +18,16 @@ let package = Package(
             name: "DefectDash",
             dependencies: ["DefectDashCore"],
             exclude: ["Resources"],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+        .executableTarget(
+            name: "DefectDashTUI",
+            dependencies: ["DefectDashCore"],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+        .testTarget(
+            name: "DefectDashTUITests",
+            dependencies: ["DefectDashTUI"],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .testTarget(
