@@ -7,7 +7,9 @@ let package = Package(
     products: [
         .library(name: "DefectDashCore", targets: ["DefectDashCore"]),
         .executable(name: "DefectDash", targets: ["DefectDash"]),
-        .executable(name: "defectdash", targets: ["DefectDashTUI"]),
+        // Named differently from "DefectDash" in more than case: both products land in one build directory
+        // on a case-insensitive filesystem. The Makefile installs it as `defectdash`.
+        .executable(name: "defectdash-tui", targets: ["DefectDashTUI"]),
     ],
     targets: [
         .target(

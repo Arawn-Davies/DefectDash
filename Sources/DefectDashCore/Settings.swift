@@ -8,6 +8,11 @@ import Foundation
 public final class Settings: @unchecked Sendable {
     public static let shared = Settings(defaults: .standard)
 
+    /// The app's bundle identifier, which is also its UserDefaults domain. A non-bundled process (the terminal
+    /// UI) reads the same domain through `Settings.sharedDomain`.
+    public static let bundleIdentifier = "io.github.arawn-davies.defectdash"
+    public static let sharedDomain = Settings(defaults: UserDefaults(suiteName: bundleIdentifier) ?? .standard)
+
     public static let defaultRefreshMinutes = 5
     public static let refreshRange = 1...30
     public static var defaultWorktreesRoot: URL {

@@ -132,6 +132,29 @@ Tags: `RETEST`, `EXPECTED BEHAVIOUR`, `OVERDUE`, `BOUNCED`, `NO WORKTREE`,
 `NEEDS YOU`. Below the groups, "Other worktrees" lists dirty or unpushed
 worktrees that matched no defect.
 
+## Terminal UI
+
+`defectdash` shows the same ranked list in any terminal (kitty, iTerm2,
+Terminal.app, or over SSH), with no GPU involvement:
+
+```sh
+make tui                     # builds build/defectdash
+make install-tui             # installs to /usr/local/bin (PREFIX=~/.local for ~/.local/bin)
+defectdash
+```
+
+It reads the same settings as the app (defaults domain
+`io.github.arawn-davies.defectdash`) and the same Keychain token. When the
+login keychain is locked, as it usually is over SSH, set `ASANA_PAT` in the
+environment or pass `--token-file <path>`.
+
+Layout: grouped list on the left, detail on the right, status and key hints
+at the bottom. Keys: `j`/`k` move, `Enter` focuses the detail, `J`/`K` or
+PgUp/PgDn scroll it, `1`–`6` jump to a group, `/` filter, `d` toggle dimmed
+groups, `O` show other worktrees, `r` refresh, `o` open in Asana, `f` reveal
+in Finder, `t` open in the configured terminal, `c` copy the worktree path,
+`?` help, `q` quit. `o`/`f`/`t`/`c` act on the machine running `defectdash`.
+
 ## Icon and logo
 
 `assets/icon.svg` and `assets/logo.svg` are the sources; `scripts/make-icon.sh`
