@@ -8,7 +8,7 @@ struct OtherWorktreesView: View {
     @State private var expanded = false
 
     var body: some View {
-        Section {
+        VStack(alignment: .leading, spacing: 4) {
             DisclosureGroup(isExpanded: $expanded) {
                 ForEach(worktrees) { wt in
                     HStack(spacing: 6) {
@@ -22,6 +22,7 @@ struct OtherWorktreesView: View {
                         Text(Format.repoSummary(wt.host)).font(.caption).foregroundStyle(.secondary)
                         if wt.anySubmoduleAhead { Text("+sub").font(.caption).foregroundStyle(.orange) }
                     }
+                    .padding(.vertical, 2)
                     .contextMenu {
                         Button("Open in Finder") { model.openInFinder(wt) }
                         Button("Open in Terminal") { model.openInTerminal(wt) }

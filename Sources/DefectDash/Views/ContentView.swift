@@ -20,24 +20,37 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(selection: $selectedID) {
-                ForEach(Tier.allCases, id: \.rawValue) { group in
-                    let items = visibleItems.filter { $0.group == group }
-                    if !items.isEmpty {
-                        Section("\(group.rawValue). \(group.title) (\(items.count))") {
-                            ForEach(items) { item in
-                                DefectRowView(item: item).tag(item.id)
+            // A plain scrolling stack rather than `List`: SwiftUI's List is an NSOutlineView, and on macOS 26.6
+            // its mouse-down tracking crashed inside QuartzCore's accelerated CG path on every row click.
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 2, pinnedViews: [.sectionHeaders]) {
+                    ForEach(Tier.allCases, id: \.rawValue) { group in
+                        let items = visibleItems.filter { $0.group == group }
+                        if !items.isEmpty {
+                            Section {
+                                ForEach(items) { item in
+                                    SelectableRow(isSelected: selectedID == item.id) {
+                                        selectedID = item.id
+                                    } content: {
+                                        DefectRowView(item: item)
+                                    }
+                                }
+                            } header: {
+                                SectionHeader(text: "\(group.rawValue). \(group.title) (\(items.count))")
                             }
                         }
                     }
+                    if model.items.isEmpty && !model.isRefreshing {
+                        Text(model.banner == nil ? "No open defects." : "Nothing loaded yet.")
+                            .foregroundStyle(.secondary)
+                            .padding(12)
+                    }
+                    OtherWorktreesView(worktrees: model.otherWorktrees)
+                        .padding(.horizontal, 12)
+                        .padding(.top, 12)
                 }
-                if model.items.isEmpty && !model.isRefreshing {
-                    Text(model.banner == nil ? "No open defects." : "Nothing loaded yet.")
-                        .foregroundStyle(.secondary)
-                }
-                OtherWorktreesView(worktrees: model.otherWorktrees)
+                .padding(.bottom, 12)
             }
-            .listStyle(.inset)
             .navigationSplitViewColumnWidth(min: 440, ideal: 560, max: 800)
         } detail: {
             if let item = model.items.first(where: { $0.id == selectedID }) {
@@ -108,5 +121,40 @@ struct ContentView: View {
     private var lastRefreshedText: String {
         guard let at = model.lastRefreshed else { return "not refreshed yet" }
         return "refreshed \(Format.shortAge(at)) ago"
+    }
+}
+
+/// One clickable row with a selection highlight; no AppKit table machinery involved.
+struct SelectableRow<Content: View>: View {
+    let isSelected: Bool
+    let action: () -> Void
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        Button(action: action) {
+            content()
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .background(isSelected ? Color.accentColor.opacity(0.18) : Color.clear,
+                    in: RoundedRectangle(cornerRadius: 6))
+        .padding(.horizontal, 8)
+    }
+}
+
+struct SectionHeader: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.headline)
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.bar)
     }
 }

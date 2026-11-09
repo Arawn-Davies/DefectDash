@@ -139,8 +139,9 @@ final class AppModel {
     }
 
     func openInTerminal(_ wt: Worktree) {
-        let terminal = URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app")
+        let terminal = TerminalApp.resolve(bundleID: settings.terminalBundleID)
         let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = true
         NSWorkspace.shared.open([wt.path], withApplicationAt: terminal, configuration: configuration) { _, error in
             if let error {
                 Task { @MainActor in self.banner = "Terminal: \(error.localizedDescription)" }

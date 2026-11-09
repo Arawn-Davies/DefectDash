@@ -37,6 +37,18 @@ public final class Settings: @unchecked Sendable {
         static let closedFromStatus = "dd.closedFromStatus"
         static let retestStatus = "dd.retestStatus"
         static let relayPattern = "dd.relayPattern"
+        static let terminalBundleID = "dd.terminalBundleID"
+    }
+
+    public static let defaultTerminalBundleID = "com.apple.Terminal"
+
+    /// Bundle identifier of the terminal app used by "Open in Terminal".
+    public var terminalBundleID: String {
+        get {
+            let value = trimmed(defaults.string(forKey: Key.terminalBundleID))
+            return value.isEmpty ? Self.defaultTerminalBundleID : value
+        }
+        set { defaults.set(newValue.trimmingCharacters(in: .whitespaces), forKey: Key.terminalBundleID) }
     }
 
     /// Asana project gid (informational; the section gid drives the query).

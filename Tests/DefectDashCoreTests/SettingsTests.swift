@@ -28,6 +28,9 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(settings.ourSideLabel, "")
         XCTAssertEqual(settings.theirSideLabel, "")
         XCTAssertEqual(settings.awaitingLabels, .none)
+        XCTAssertEqual(settings.terminalBundleID, "com.apple.Terminal")
+        settings.terminalBundleID = "net.kovidgoyal.kitty"
+        XCTAssertEqual(Settings(defaults: defaults).terminalBundleID, "net.kovidgoyal.kitty")
     }
 
     func testRefreshClamped() {

@@ -25,6 +25,7 @@ struct SettingsView: View {
     @State private var closedFromStatus = BoardConfig.default.closedFromStatus
     @State private var retestStatus = BoardConfig.default.retestStatus
     @State private var relayPattern = ""
+    @State private var terminalBundleID = Settings.defaultTerminalBundleID
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -62,6 +63,11 @@ struct SettingsView: View {
                         Button("Choose…") { chooseFolder() }
                     }
                     TextField("Systems to match (comma-separated, empty = all)", text: $matchSystems)
+                    Picker("Open in Terminal uses", selection: $terminalBundleID) {
+                        ForEach(TerminalApp.installed) { app in
+                            Text(app.name).tag(app.bundleID)
+                        }
+                    }
                 }
                 Section("Refresh") {
                     Stepper("Every \(refreshMinutes) min", value: $refreshMinutes, in: Settings.refreshRange)
@@ -97,6 +103,8 @@ struct SettingsView: View {
         closedFromStatus = b.closedFromStatus
         retestStatus = b.retestStatus
         relayPattern = b.relayPattern
+        terminalBundleID = TerminalApp.installed.contains { $0.bundleID == s.terminalBundleID }
+            ? s.terminalBundleID : Settings.defaultTerminalBundleID
         hasStoredToken = ((try? model.keychain.load()) ?? nil).map { !$0.isEmpty } ?? false
     }
 
@@ -107,6 +115,7 @@ struct SettingsView: View {
         s.worktreesRoot = URL(fileURLWithPath: (worktreesRoot as NSString).expandingTildeInPath, isDirectory: true)
         s.matchSystems = matchSystems.split(separator: ",").map { String($0) }
         s.refreshMinutes = refreshMinutes
+        s.terminalBundleID = terminalBundleID
         s.board = BoardConfig(
             bugPrefix: bugPrefix.isEmpty ? BoardConfig.default.bugPrefix : bugPrefix,
             statusField: statusField.isEmpty ? BoardConfig.default.statusField : statusField,
