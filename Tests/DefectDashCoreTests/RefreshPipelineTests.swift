@@ -46,7 +46,7 @@ final class RefreshPipelineTests: XCTestCase {
 
     override func setUpWithError() throws {
         root = FileManager.default.temporaryDirectory.appending(path: "defectdash-pipeline-\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: root.appending(path: "Sys/fix/bug-184/.git"), withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: root.appending(path: "Sys/fix/bug-101/.git"), withIntermediateDirectories: true)
     }
 
     override func tearDownWithError() throws {
@@ -64,18 +64,18 @@ final class RefreshPipelineTests: XCTestCase {
     func testRunJoinsDefectsAndWorktrees() async throws {
         let other = AsanaStory(gid: "s1", createdAt: Date(), createdBy: AsanaUserRef(gid: "200", name: "Manager"),
                                type: "comment", resourceSubtype: "comment_added", text: "please look")
-        let asana = FakeAsana(tasks: [task("t1", "Follow up of BUG-184", dependents: ["src1"]), task("t2", "Follow up of BUG-9")],
-                              stories: ["t1": [other]], titles: ["src1": "[BUG-184] Receipt time"])
+        let asana = FakeAsana(tasks: [task("t1", "Follow up of BUG-101", dependents: ["src1"]), task("t2", "Follow up of BUG-9")],
+                              stories: ["t1": [other]], titles: ["src1": "[BUG-101] Save drops an ingredient"])
         let pipeline = RefreshPipeline(api: { _ in asana }, git: FakeGit())
         let board = BoardConfig(awaitingLabels: AwaitingLabels(ours: "Vendor", theirs: "Client"))
         let result = try await pipeline.run(token: "tok", sectionGid: "S", worktreesRoot: root, matchSystems: ["Sys"], board: board)
 
         XCTAssertEqual(result.me.name, "Dev One")
         XCTAssertEqual(result.items.count, 2)
-        let bug184 = try XCTUnwrap(result.items.first { $0.defect.bugNumber == 184 })
-        XCTAssertEqual(bug184.defect.title, "[BUG-184] Receipt time")
-        XCTAssertEqual(bug184.worktrees.map(\.relativePath), ["fix/bug-184"])
-        XCTAssertEqual(bug184.group, .needsYou)
+        let bug101 = try XCTUnwrap(result.items.first { $0.defect.bugNumber == 101 })
+        XCTAssertEqual(bug101.defect.title, "[BUG-101] Save drops an ingredient")
+        XCTAssertEqual(bug101.worktrees.map(\.relativePath), ["fix/bug-101"])
+        XCTAssertEqual(bug101.group, .needsYou)
         let bug9 = try XCTUnwrap(result.items.first { $0.defect.bugNumber == 9 })
         XCTAssertTrue(bug9.worktrees.isEmpty)
         XCTAssertEqual(bug9.group, .yoursInHand)

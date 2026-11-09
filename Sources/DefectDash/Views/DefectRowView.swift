@@ -17,7 +17,7 @@ struct DefectRowView: View {
                 HStack(spacing: 6) {
                     Text(Format.bug(item.defect.bugNumber))
                         .font(.system(.body, design: .monospaced)).bold()
-                    Text(item.defect.title)
+                    Text(item.defect.displayTitle)
                         .lineLimit(1)
                         .truncationMode(.tail)
                     Spacer(minLength: 0)

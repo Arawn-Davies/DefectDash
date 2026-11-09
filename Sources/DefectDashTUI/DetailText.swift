@@ -25,7 +25,8 @@ enum DetailText {
         }
 
         // Header
-        out.append(StyledLine(text: TextLayout.truncate("\(TUIFormat.bug(d.bugNumber))  \(d.title)", width: w), style: .bold))
+        out.append(StyledLine(text: TextLayout.truncate("\(TUIFormat.bug(d.bugNumber))  \(d.displayTitle)", width: w), style: .bold))
+        if d.displayTitle != d.title { wrapped(d.title, style: .dimmed) }
         let tags = item.flags.labels + (item.needsYou ? ["NEEDS YOU"] : [])
         if !tags.isEmpty { wrapped(tags.joined(separator: "  "), style: .fg(.red, bold: true)) }
         var fields: [String] = []

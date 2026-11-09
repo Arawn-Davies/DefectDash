@@ -72,7 +72,7 @@ enum Render {
                 let lead = "\(bug) \(markers) "
                 let branchCol = TextLayout.pad(branch, width: min(16, max(0, width - lead.count - 12)))
                 let rest = width - lead.count - branchCol.count - 2
-                let title = TextLayout.truncate(item.defect.title, width: max(0, rest))
+                let title = TextLayout.truncate(item.defect.displayTitle, width: max(0, rest))
                 let line = TextLayout.pad(lead + branchCol + " " + title, width: width - 1)
                 var style = Style(dim: item.group.isDimmed)
                 if selected { style.reverse = true; style.dim = false; style.bold = true }

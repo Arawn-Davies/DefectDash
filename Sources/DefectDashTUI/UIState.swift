@@ -38,7 +38,7 @@ struct UIState {
         return items.filter { item in
             if hideDimmed && item.group.isDimmed { return false }
             guard !needle.isEmpty else { return true }
-            let hay = "bug-\(item.defect.bugNumber ?? 0) \(item.defect.title) \(item.defect.workbenchName)".lowercased()
+            let hay = "bug-\(item.defect.bugNumber ?? 0) \(item.defect.title) \(item.defect.displayTitle) \(item.defect.workbenchName)".lowercased()
             return hay.contains(needle)
         }
     }

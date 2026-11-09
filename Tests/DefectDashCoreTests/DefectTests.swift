@@ -21,49 +21,49 @@ final class DefectTests: XCTestCase {
     }
 
     func testAssemblesFromTask() throws {
-        let t = task(name: "Follow up of BUG-184",
+        let t = task(name: "Follow up of BUG-101",
                      fields: [("Status", "4 · Retest"), ("Awaiting", "Vendor"),
                               ("Classification", nil), ("ACME - SPRINT", "5")],
-                     dueOn: "2026-10-26", dependents: ["5001"],
+                     dueOn: "2026-01-26", dependents: ["5001"],
                      assignee: AsanaUserRef(gid: Self.me, name: "Dev One"))
         let story = AsanaStory(gid: "s1", createdAt: Date(timeIntervalSince1970: 1_793_710_413),
                                createdBy: AsanaUserRef(gid: Self.me, name: "Dev One"),
                                type: "comment", resourceSubtype: "comment_added", text: "hi")
-        let d = Defect(task: t, stories: [story], sourceTitle: "[BUG-184] Receipt time", myGid: Self.me,
+        let d = Defect(task: t, stories: [story], sourceTitle: "[BUG-101] Save drops an ingredient", myGid: Self.me,
                        board: board, calendar: utc)
         XCTAssertEqual(d.gid, "t1")
-        XCTAssertEqual(d.bugNumber, 184)
+        XCTAssertEqual(d.bugNumber, 101)
         XCTAssertEqual(d.status, 4)
         XCTAssertEqual(d.awaiting, .ours)
         XCTAssertEqual(d.awaitingLabel, "Vendor")
-        XCTAssertEqual(d.title, "[BUG-184] Receipt time")
-        XCTAssertEqual(d.workbenchName, "Follow up of BUG-184")
+        XCTAssertEqual(d.title, "[BUG-101] Save drops an ingredient")
+        XCTAssertEqual(d.workbenchName, "Follow up of BUG-101")
         XCTAssertEqual(d.sourceGid, "5001")
         XCTAssertEqual(d.sprint, "5")
         XCTAssertNil(d.classification)
         XCTAssertEqual(d.permalink, "https://app.asana.com/0/1/t1")
         XCTAssertEqual(d.assignee?.gid, Self.me)
-        XCTAssertEqual(d.dueOn, utc.date(from: DateComponents(year: 2026, month: 10, day: 26)))
+        XCTAssertEqual(d.dueOn, utc.date(from: DateComponents(year: 2026, month: 1, day: 26)))
         XCTAssertEqual(d.notes.priority, "Low")
         XCTAssertEqual(d.events.count, 1)
         XCTAssertTrue(d.events[0].isMine)
     }
 
     func testTitleFallsBackToWorkbenchName() {
-        let t = task(name: "Follow up of BUG-184", fields: [], dependents: [])
+        let t = task(name: "Follow up of BUG-101", fields: [], dependents: [])
         let d = Defect(task: t, stories: [], sourceTitle: nil, myGid: Self.me, board: board, calendar: utc)
-        XCTAssertEqual(d.title, "Follow up of BUG-184")
+        XCTAssertEqual(d.title, "Follow up of BUG-101")
         XCTAssertNil(d.sourceGid)
     }
 
     func testNoBugNumberStillBuilds() {
-        let t = task(name: "Qualifications import", fields: [])
+        let t = task(name: "Imports backlog", fields: [])
         let d = Defect(task: t, stories: [], sourceTitle: nil, myGid: Self.me, board: board, calendar: utc)
         XCTAssertNil(d.bugNumber)
         XCTAssertNil(d.status)
         XCTAssertNil(d.awaiting)
         XCTAssertNil(d.dueOn)
-        XCTAssertEqual(d.title, "Qualifications import")
+        XCTAssertEqual(d.title, "Imports backlog")
     }
 
     func testUnknownEnumValuesBecomeNil() {
@@ -72,6 +72,23 @@ final class DefectTests: XCTestCase {
         XCTAssertNil(d.awaiting)
         XCTAssertEqual(d.awaitingLabel, "Partner")
         XCTAssertNil(d.status)
+    }
+
+    func testDisplayTitleFallsBackWhenTitleIsJustTheId() {
+        func make(title: String?, notes: String) -> Defect {
+            var t = task(name: "Follow up of BUG-7", fields: [])
+            t = AsanaTask(gid: t.gid, name: t.name, notes: notes, assignee: nil, dueOn: nil, modifiedAt: t.modifiedAt,
+                          permalinkUrl: nil, customFields: [], dependents: [])
+            return Defect(task: t, stories: [], sourceTitle: title, myGid: Self.me, board: board)
+        }
+        XCTAssertEqual(make(title: "[BUG-7] Save drops an ingredient", notes: "").displayTitle, "[BUG-7] Save drops an ingredient")
+        XCTAssertEqual(make(title: "BUG-7", notes: "Actual result::\nThe last ingredient is dropped.\nMore.\n").displayTitle,
+                       "The last ingredient is dropped.")
+        XCTAssertEqual(make(title: "bug-0007", notes: "Expected result::\nEvery ingredient is saved\n").displayTitle,
+                       "Every ingredient is saved")
+        XCTAssertEqual(make(title: nil, notes: "").displayTitle, "Follow up of BUG-7")
+        let long = String(repeating: "x", count: 200)
+        XCTAssertEqual(make(title: "BUG-7", notes: "Actual result::\n\(long)\n").displayTitle.count, 120)
     }
 
     func testAwaitingLabelsAreCaseInsensitiveAndEmptyNeverMatches() {

@@ -65,7 +65,7 @@ public struct DefectNotes: Sendable, Equatable {
     /// A horizontal rule line: three or more em dashes or hyphens.
     private static var rulePattern: Regex<Substring> { /^[—-]{3,}\s*$/ }
 
-    /// A continuation heading line such as `(paste backlog task link, e.g. P1S1-03):`.
+    /// A continuation heading line such as `(paste backlog task link, e.g. AC-01):`.
     private static var parentheticalLinePattern: Regex<Substring> { /^\([^)]*\)\s*:{1,2}\s*$/ }
 
     public static func parse(_ notes: String) -> DefectNotes {

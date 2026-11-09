@@ -2,23 +2,23 @@ import XCTest
 @testable import DefectDashCore
 
 final class BugNumberTests: XCTestCase {
-    func testTaskName() { XCTAssertEqual(BugNumber.fromTaskName("Follow up of BUG-184"), 184) }
+    func testTaskName() { XCTAssertEqual(BugNumber.fromTaskName("Follow up of BUG-101"), 101) }
     func testTaskNameZeroPadded() { XCTAssertEqual(BugNumber.fromTaskName("Follow up of BUG-0044"), 44) }
-    func testTaskNameNoBug() { XCTAssertNil(BugNumber.fromTaskName("Qualifications import")) }
+    func testTaskNameNoBug() { XCTAssertNil(BugNumber.fromTaskName("Imports backlog")) }
 
     func testWorktreeShapes() {
         let cases: [(String, String?, Int?)] = [
             ("fix/bug-001", "fix/bug-001", 1),
             ("fix/BUG-140", "fix/BUG-140", 140),
             ("bug-006", "bug-006", 6),
-            ("bug-013/public-booking-confirmation-email", "bug-013/public-booking-confirmation-email", 13),
+            ("bug-013/confirmation-email", "bug-013/confirmation-email", 13),
             ("feature/bug-185-status-filter", nil, 185),
             ("sprint-4/bug-007", "sprint-4/bug-007", 7),
             ("follow-up-bug-063", "follow-up-bug-063", 63),
             ("fix-bug-004", "fix-bug-004", 4),
-            ("fix/bug-0044", "fix/bug-0044-one-row-per-exam", 44),
-            ("misc/certificates-v3", "feature/presented-by", nil),
-            ("sprint-6/uat-test-scripts", "sprint-6/uat-test-scripts", nil),
+            ("fix/bug-0044", "fix/bug-0044-one-row-per-item", 44),
+            ("misc/exports-v3", "feature/dark-mode", nil),
+            ("sprint-6/test-scripts", "sprint-6/test-scripts", nil),
             ("main", "main", nil),
         ]
         for (path, branch, expected) in cases {
@@ -28,13 +28,13 @@ final class BugNumberTests: XCTestCase {
 
     func testCustomPrefix() {
         XCTAssertEqual(BugNumber.fromTaskName("Follow up of TKT-0042", prefix: "TKT"), 42)
-        XCTAssertNil(BugNumber.fromTaskName("Follow up of BUG-184", prefix: "TKT"))
+        XCTAssertNil(BugNumber.fromTaskName("Follow up of BUG-101", prefix: "TKT"))
         XCTAssertEqual(BugNumber.fromWorktree(relativePath: "fix/tkt-7", branch: nil, prefix: "TKT"), 7)
         XCTAssertNil(BugNumber.fromWorktree(relativePath: "fix/bug-7", branch: nil, prefix: "TKT"))
         XCTAssertEqual(BugNumber.fromTaskName("[GH#12] title", prefix: "GH#"), nil)   // prefix must be followed by "-"
     }
 
     func testBranchWinsWhenPathHasNone() {
-        XCTAssertEqual(BugNumber.fromWorktree(relativePath: "misc/scratch", branch: "fix/bug-212-stripe-iso"), 212)
+        XCTAssertEqual(BugNumber.fromWorktree(relativePath: "misc/scratch", branch: "fix/bug-212-date-format"), 212)
     }
 }

@@ -110,6 +110,20 @@ public struct Defect: Sendable, Identifiable, Equatable {
         )
     }
 
+    /// `title`, unless it is nothing more than the ticket id (some boards name the source task "BUG-101");
+    /// then the first line of the report's actual or expected result, cut to 120 characters, else the workbench name.
+    public var displayTitle: String {
+        let trimmed = title.trimmingCharacters(in: .whitespaces)
+        let bareID = trimmed.firstMatch(of: /^\[?[A-Za-z]+-?0*\d+\]?$/) != nil
+        guard bareID else { return trimmed }
+        for candidate in [notes.actual, notes.expected] {
+            if let text = candidate?.split(separator: "\n").first.map({ $0.trimmingCharacters(in: .whitespaces) }), !text.isEmpty {
+                return text.count > 120 ? String(text.prefix(119)) + "…" : text
+            }
+        }
+        return workbenchName
+    }
+
     /// "yyyy-MM-dd" -> midnight in the calendar's time zone.
     static func parseDay(_ string: String, calendar: Calendar) -> Date? {
         let parts = string.split(separator: "-").compactMap { Int($0) }

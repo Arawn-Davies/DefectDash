@@ -2,7 +2,7 @@ import Foundation
 
 /// Everything about *your* board's vocabulary. Nothing here is hard-coded elsewhere; the app reads it from Settings.
 public struct BoardConfig: Sendable, Equatable {
-    /// Ticket prefix: tasks named "… BUG-184 …" and worktrees named "fix/bug-184" with prefix "BUG".
+    /// Ticket prefix: tasks named "… BUG-101 …" and worktrees named "fix/bug-101" with prefix "BUG".
     public var bugPrefix: String
     /// Custom field whose options start with a number ("1 · Open" … "5 · Closed"); the number drives ranking.
     public var statusField: String

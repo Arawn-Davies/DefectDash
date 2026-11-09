@@ -95,7 +95,7 @@ final class AsanaClientTests: XCTestCase {
         let page2 = try fixture("tasks-page2")
         let me = json(Self.meBody)
         let stories = json(Self.storiesBody)
-        let name = json(#"{"data":{"gid":"5001","name":"[BUG-184] Receipt time"}}"#)
+        let name = json(#"{"data":{"gid":"5001","name":"[BUG-101] Save drops an ingredient"}}"#)
         StubURLProtocol.state.handler = { request in
             let url = request.url!
             let path = url.path
@@ -143,7 +143,7 @@ final class AsanaClientTests: XCTestCase {
         let tasks = try await client.openTasks(inSection: "S")
         XCTAssertEqual(tasks.map(\.gid), ["1", "2"])
         XCTAssertEqual(tasks[0].customFields.first { $0.name == "Status" }?.displayValue, "4 · Retest")
-        XCTAssertEqual(tasks[0].dueOn, "2026-10-26")
+        XCTAssertEqual(tasks[0].dueOn, "2026-01-26")
         XCTAssertEqual(tasks[0].dependents?.first?.gid, "5001")
         XCTAssertEqual(tasks[0].assignee, AsanaUserRef(gid: "100", name: "Dev One"))
         XCTAssertNil(tasks[1].assignee)

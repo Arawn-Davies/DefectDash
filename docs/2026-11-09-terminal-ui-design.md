@@ -47,12 +47,12 @@ driver state and works on a remote machine.
 ```
  DefectDash · Arawn Davies · refreshed 2m ago · needs you 7           every 5m
 ─────────────────────────────────────────┬──────────────────────────────────────
- 1 Needs you (7)                         │ BUG-184  Receipt shows basket time
-▌BUG-184 !O   fix/bug-184     Receipt…   │ Status 4 · Retest   Awaiting Vendor
- BUG-183 !ROB fix/bug-183     Payment…   │ Assignee Dev One    Due 26 Oct
+ 1 Needs you (7)                         │ BUG-101  Save drops the last ingredient
+▌BUG-101 !O   fix/bug-101     Save dr…   │ Status 4 · Retest   Awaiting Vendor
+ BUG-102 !ROB fix/bug-102     Upload…   │ Assignee Dev One    Due 26 Oct
  …                                       │
  2 Yours, in hand (0)                    │ Worktrees
- 3 Unassigned, on our side (7)           │  fix/bug-184  main ● +1/-0 3d
+ 3 Unassigned, on our side (7)           │  fix/bug-101  main ● +1/-0 3d
  …                                       │   engines/core  …
  5 With the other side (9)   [dim]       │
  …                                       │ Report

@@ -27,7 +27,10 @@ struct DetailView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(Format.bug(defect.bugNumber)).font(.system(.title2, design: .monospaced)).bold()
-                Text(defect.title).font(.title2)
+                Text(defect.displayTitle).font(.title2)
+            }
+            if defect.displayTitle != defect.title {
+                Text(defect.title).font(.callout).foregroundStyle(.secondary)
             }
             HStack(spacing: 10) {
                 if let link = defect.permalink.flatMap(URL.init(string:)) {

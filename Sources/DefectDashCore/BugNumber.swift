@@ -1,7 +1,7 @@
 import Foundation
 
 public enum BugNumber {
-    /// Matches `<prefix>-0*(\d+)`, case-insensitive. "Follow up of BUG-184" -> 184
+    /// Matches `<prefix>-0*(\d+)`, case-insensitive. "Follow up of BUG-101" -> 101
     public static func fromTaskName(_ name: String, prefix: String = "BUG") -> Int? {
         guard let regex = try? Regex("\\b\(NSRegularExpression.escapedPattern(for: prefix))-0*(\\d+)").ignoresCase(),
               let match = name.firstMatch(of: regex) else { return nil }

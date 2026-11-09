@@ -22,8 +22,8 @@ final class ActivityTests: XCTestCase {
                    oldEnumValue: old.map(AsanaEnumRef.init))
     }
 
-    func testBug184NoiseDroppedAndOrder() throws {
-        let raw = try stories("stories-bug184")
+    func testFixtureANoiseDroppedAndOrder() throws {
+        let raw = try stories("stories-a")
         XCTAssertEqual(raw.count, 9)
         let events = Activity.events(from: raw, myGid: Self.me, board: Self.board)
         XCTAssertEqual(events.count, 8)   // one personal_comment_reminder_story dropped
@@ -34,7 +34,7 @@ final class ActivityTests: XCTestCase {
     }
 
     func testRelayPrefixParsed() throws {
-        let events = Activity.events(from: try stories("stories-bug184"), myGid: Self.me, board: Self.board)
+        let events = Activity.events(from: try stories("stories-a"), myGid: Self.me, board: Self.board)
         let relayed = try XCTUnwrap(events.first { $0.id == "s6" })
         guard case let .comment(author, text, viaRelay) = relayed.kind else { return XCTFail("not a comment: \(relayed.kind)") }
         XCTAssertEqual(author, "Tester A")
@@ -45,16 +45,16 @@ final class ActivityTests: XCTestCase {
     }
 
     func testPlainCommentAuthor() throws {
-        let events = Activity.events(from: try stories("stories-bug184"), myGid: Self.me, board: Self.board)
+        let events = Activity.events(from: try stories("stories-a"), myGid: Self.me, board: Self.board)
         let plain = try XCTUnwrap(events.first { $0.id == "s3" })
         guard case let .comment(author, text, viaRelay) = plain.kind else { return XCTFail("not a comment") }
         XCTAssertEqual(author, "Manager")
-        XCTAssertTrue(text.hasPrefix("We can't get in to"), text)
+        XCTAssertTrue(text.hasPrefix("We can't change"), text)
         XCTAssertFalse(viaRelay)
     }
 
     func testAwaitingAndStatusChanges() throws {
-        let events = Activity.events(from: try stories("stories-bug184"), myGid: Self.me, board: Self.board)
+        let events = Activity.events(from: try stories("stories-a"), myGid: Self.me, board: Self.board)
         let awaiting = try XCTUnwrap(events.first { $0.id == "s1" })
         XCTAssertEqual(awaiting.kind, .awaitingChanged(from: "Client", to: "Vendor"))
         let status = try XCTUnwrap(events.first { $0.id == "s9" })
@@ -62,7 +62,7 @@ final class ActivityTests: XCTestCase {
     }
 
     func testIsMineByGid() throws {
-        let events = Activity.events(from: try stories("stories-bug184"), myGid: Self.me, board: Self.board)
+        let events = Activity.events(from: try stories("stories-a"), myGid: Self.me, board: Self.board)
         XCTAssertEqual(events.first { $0.id == "s4" }?.isMine, true)
         XCTAssertEqual(events.first { $0.id == "s3" }?.isMine, false)
     }
@@ -77,15 +77,15 @@ final class ActivityTests: XCTestCase {
     }
 
     func testLastOtherAndMyLast() throws {
-        let events = Activity.events(from: try stories("stories-bug184"), myGid: Self.me, board: Self.board)
+        let events = Activity.events(from: try stories("stories-a"), myGid: Self.me, board: Self.board)
         XCTAssertEqual(Activity.lastOther(events)?.id, "s1")
-        XCTAssertEqual(Activity.lastOther(events)?.at, date("2026-11-04T10:52:52Z").addingTimeInterval(0.146))
+        XCTAssertEqual(Activity.lastOther(events)?.at, date("2026-01-20T10:00:00Z"))
         XCTAssertEqual(Activity.myLast(events)?.id, "s4")
-        XCTAssertEqual(Activity.myLast(events)?.at, date("2026-11-03T12:53:33Z").addingTimeInterval(0.283))
+        XCTAssertEqual(Activity.myLast(events)?.at, date("2026-01-19T12:00:00Z"))
     }
 
-    func testBouncedOnBug195() throws {
-        let events = Activity.events(from: try stories("stories-bug195"), myGid: Self.me, board: Self.board)
+    func testBouncedOnFixtureB() throws {
+        let events = Activity.events(from: try stories("stories-b"), myGid: Self.me, board: Self.board)
         XCTAssertTrue(events.contains { $0.kind == .defectStatusChanged(from: 3, to: 2) })
         XCTAssertFalse(Activity.bounced(events))
         let bounce = story(at: "2026-11-06T00:00:00Z", by: AsanaUserRef(gid: "77", name: "Manager"), type: "system",
@@ -95,12 +95,12 @@ final class ActivityTests: XCTestCase {
     }
 
     func testWithoutRelayPatternCommentsBelongToTheRelayer() throws {
-        let events = Activity.events(from: try stories("stories-bug184"), myGid: Self.me, board: .default)
+        let events = Activity.events(from: try stories("stories-a"), myGid: Self.me, board: .default)
         let relayed = try XCTUnwrap(events.first { $0.id == "s6" })
         guard case let .comment(author, text, viaRelay) = relayed.kind else { return XCTFail("not a comment") }
         XCTAssertEqual(author, "Manager")
         XCTAssertFalse(viaRelay)
-        XCTAssertTrue(text.hasPrefix("Client comment on BUG-184"), text)
+        XCTAssertTrue(text.hasPrefix("Client comment on BUG-101"), text)
     }
 
     func testCustomFieldNamesComeFromBoardConfig() {

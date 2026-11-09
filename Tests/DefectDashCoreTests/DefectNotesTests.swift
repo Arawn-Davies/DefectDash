@@ -8,16 +8,16 @@ final class DefectNotesTests: XCTestCase {
         return try String(contentsOf: url, encoding: .utf8)
     }
 
-    func testParsesBug184Fixture() throws {
-        let notes = DefectNotes.parse(try fixtureText("bug184-notes"))
-        XCTAssertTrue(notes.expected?.hasPrefix("The date and time displayed on the card receipt") ?? false, notes.expected ?? "nil")
-        XCTAssertTrue(notes.actual?.hasPrefix("The date and time displayed on the invoice") ?? false, notes.actual ?? "nil")
+    func testParsesSampleFixture() throws {
+        let notes = DefectNotes.parse(try fixtureText("notes-sample"))
+        XCTAssertTrue(notes.expected?.hasPrefix("The recipe is saved with every ingredient") ?? false, notes.expected ?? "nil")
+        XCTAssertTrue(notes.actual?.hasPrefix("The recipe is saved without the last ingredient") ?? false, notes.actual ?? "nil")
         XCTAssertEqual(notes.environment, "Staging")
         XCTAssertEqual(notes.browser, "Chrome/Mac")
         XCTAssertEqual(notes.priority, "Low")
         XCTAssertEqual(notes.sprint, "5")
         XCTAssertEqual(notes.raisedBy, "Tester A")
-        XCTAssertEqual(notes.dateRaised, "Oct 23, 2026")
+        XCTAssertEqual(notes.dateRaised, "Jan 12, 2026")
         XCTAssertEqual(notes.deliverable, "AC-12")
         XCTAssertEqual(notes.testCaseId, "TC-42")
         XCTAssertTrue(notes.steps?.contains("10. Compare") ?? false, notes.steps ?? "nil")

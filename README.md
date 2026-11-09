@@ -38,7 +38,7 @@ the values in brackets are the defaults.
 - A worktrees root (default `~/src/wtrees`) laid out as
   `<root>/<System>/<anything>/...`, where a directory containing `.git` is a
   worktree. Worktrees are matched to defects by `bug-NNN` in the directory
-  path or branch name (`fix/bug-184`, `bug-013/foo`, `fix-bug-004`, …).
+  path or branch name (`fix/bug-101`, `bug-013/foo`, `fix-bug-004`, …).
 
 ## Requirements
 

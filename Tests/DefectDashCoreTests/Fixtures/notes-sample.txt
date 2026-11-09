@@ -1,0 +1,49 @@
+Source: https://app.asana.com/0/0/5001/f/
+
+Raised by::
+Tester A
+
+Date raised::
+Jan 12, 2026
+
+Acceptance criterion affected:
+(paste backlog task link, e.g. AC-01):
+AC-12
+
+Environment::
+Staging
+
+Browser / device::
+Chrome/Mac
+
+Steps to reproduce::
+1. Log in as a member.
+2. Open Recipes.
+3. Create a new recipe with three ingredients.
+4. Save it.
+5. Open the recipe again.
+6. Add a fourth ingredient.
+7. Save again.
+8. Reload the page.
+9. Open the recipe.
+10. Compare the ingredient list with what was entered.
+
+Expected result (per the agreed acceptance criteria)::
+The recipe is saved with every ingredient the user entered. A confirmation banner appears after each save.
+
+Actual result::
+The recipe is saved without the last ingredient.
+No confirmation banner is shown after the second save.
+
+Test Case ID::
+TC-42
+
+Priority:
+Low
+
+ACME - SPRINT:
+5
+
+———————————————
+This task was submitted through  Defect Report
+https://form.asana.com/?k=FORMKEY&d=1

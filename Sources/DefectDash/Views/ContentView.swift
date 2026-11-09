@@ -13,7 +13,7 @@ struct ContentView: View {
         return model.items.filter { item in
             if hideDimmed && item.group.isDimmed { return false }
             guard !needle.isEmpty else { return true }
-            let haystack = "\(Format.bug(item.defect.bugNumber)) \(item.defect.title) \(item.defect.workbenchName)".lowercased()
+            let haystack = "\(Format.bug(item.defect.bugNumber)) \(item.defect.title) \(item.defect.displayTitle) \(item.defect.workbenchName)".lowercased()
             return haystack.contains(needle)
         }
     }

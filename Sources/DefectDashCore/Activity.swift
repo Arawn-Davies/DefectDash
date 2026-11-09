@@ -68,7 +68,7 @@ public enum Activity {
         }
     }
 
-    /// "4 · Verify / UAT retest" -> 4, "7. Change Request" -> 7
+    /// "4 · Retest" -> 4, "7. Change Request" -> 7
     public static func parseStatusNumber(_ label: String?) -> Int? {
         guard let label, let match = label.firstMatch(of: statusNumberPattern) else { return nil }
         return Int(match.1)
