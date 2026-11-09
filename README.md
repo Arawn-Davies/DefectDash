@@ -50,8 +50,9 @@ the values in brackets are the defaults.
 ### Homebrew
 
 ```sh
-brew tap Arawn-Davies/defectdash
-brew install --cask defectdash
+brew tap arawn-davies/defectdash
+brew trust --cask arawn-davies/defectdash/defectdash   # Homebrew 6 tap trust; or `brew trust arawn-davies/defectdash` for the whole tap
+brew install --cask arawn-davies/defectdash/defectdash
 ```
 
 Installs `DefectDash.app` into Applications and the `defectdash` terminal UI
