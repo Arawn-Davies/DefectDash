@@ -46,7 +46,7 @@ dist: app tui
 	cp build/defectdash build/dist/defectdash
 	codesign --force --sign - build/dist/defectdash
 	rm -f build/DefectDash-$(VERSION)-macos-arm64.zip
-	cd build/dist && ditto -c -k --keepParent --sequesterRsrc . ../DefectDash-$(VERSION)-macos-arm64.zip
+	cd build/dist && ditto -c -k --norsrc . ../DefectDash-$(VERSION)-macos-arm64.zip
 	@shasum -a 256 build/DefectDash-$(VERSION)-macos-arm64.zip
 
 clean:
