@@ -42,7 +42,11 @@ else
 fi
 
 # Let codesign use the private key non-interactively (asks for your login keychain password on this tty).
-security set-key-partition-list -S apple-tool:,apple:,codesign: -s "$keychain"
+# Skipped when codesign can already use the key.
+cp /usr/bin/true "$work/probe0"
+if ! codesign --force --sign "$name" "$work/probe0" 2>/dev/null; then
+  security set-key-partition-list -S apple-tool:,apple:,codesign: -s "$keychain"
+fi
 
 # Optionally trust it for code signing. Trust is NOT required: the Keychain access list matches the signing
 # certificate itself, and scripts/sign.sh only needs the identity to exist. Trust settings need a GUI
