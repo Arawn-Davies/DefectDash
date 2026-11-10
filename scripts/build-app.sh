@@ -17,12 +17,4 @@ cp "Sources/DefectDash/Resources/Info.plist" "$app/Contents/Info.plist"
 cp "Sources/DefectDash/Resources/AppIcon.icns" "$app/Contents/Resources/AppIcon.icns"
 printf 'APPL????' > "$app/Contents/PkgInfo"
 
-IDENTITY="${SIGN_IDENTITY:-DefectDash Dev}"
-if security find-identity -v -p codesigning | grep -q "\"$IDENTITY\""; then
-  codesign --force --sign "$IDENTITY" --identifier io.github.arawn-davies.defectdash "$app"
-  echo "signed $app with identity \"$IDENTITY\""
-else
-  echo "warning: identity \"$IDENTITY\" not found, signing ad-hoc (Keychain access will re-prompt after each rebuild)" >&2
-  codesign --force --sign - --identifier io.github.arawn-davies.defectdash "$app"
-  echo "signed $app ad-hoc"
-fi
+scripts/sign.sh "$app"

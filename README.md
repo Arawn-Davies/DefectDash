@@ -95,22 +95,25 @@ make run         # make app, then open the bundle
 
 ## One-time setup
 
-### 1. Code-signing certificate (recommended)
+### 1. Code-signing certificate (recommended when building yourself)
 
 Ad-hoc signatures change on every build, so the Keychain would ask for
-permission to read the Asana token after each rebuild. A self-signed
-certificate gives the app a stable identity:
+permission to read the Asana token after each rebuild, and "Always Allow"
+does not stick. A self-signed certificate gives the binaries a stable
+identity:
 
-1. Open **Keychain Access** → menu **Keychain Access → Certificate Assistant →
-   Create a Certificate…**
-2. Name: `DefectDash Dev`. Identity Type: **Self Signed Root**.
-   Certificate Type: **Code Signing**. Create.
-3. In Keychain Access, find the certificate under *login → My Certificates*,
-   open it, expand **Trust**, and set **Code Signing** to **Always Trust**.
+```sh
+scripts/make-dev-cert.sh      # creates and trusts "DefectDash Dev" in the login keychain
+```
 
-`make app` picks the identity up automatically (override with
-`SIGN_IDENTITY=... make app`). Without it the build still works, ad-hoc
-signed, with a warning.
+It asks for your login keychain password (and, over SSH, your sudo password
+for the trust store). Alternatively do it by hand in Keychain Access:
+Certificate Assistant → Create a Certificate, name `DefectDash Dev`, Self
+Signed Root, Code Signing; then Trust → Code Signing → Always Trust.
+
+`make app`, `make tui` and `make dist` sign with it automatically (override
+with `SIGN_IDENTITY=...`). Without it the build still works, ad-hoc signed,
+with a warning.
 
 ### 2. Asana personal access token
 
