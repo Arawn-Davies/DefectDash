@@ -43,7 +43,7 @@ cask "defectdash" do
     strategy :github_latest
   end
 
-  depends_on macos: ">= :sequoia"
+  depends_on macos: :sequoia
   depends_on arch: :arm64
 
   app "DefectDash.app"
@@ -51,14 +51,11 @@ cask "defectdash" do
 
   # Both binaries are ad-hoc signed and not notarized; without this Gatekeeper refuses to run them.
   # The app lives in appdir; the terminal binary stays in the Caskroom and is symlinked into bin.
-  postflight do
-    system_command "/usr/bin/xattr",
-                   args: ["-dr", "com.apple.quarantine", "#{appdir}/DefectDash.app"],
-                   sudo: false
-    system_command "/usr/bin/xattr",
-                   args: ["-d", "com.apple.quarantine", "#{staged_path}/defectdash"],
-                   sudo: false,
-                   must_succeed: false
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{appdir}}/DefectDash.app"],
+                          writable_paths: ["{{appdir}}/DefectDash.app"]
+    run "/usr/bin/xattr", args: ["-d", "com.apple.quarantine", "{{staged_path}}/defectdash"],
+                          writable_paths: ["{{staged_path}}"]
   end
 
   zap trash: "~/Library/Preferences/io.github.arawn-davies.defectdash.plist"

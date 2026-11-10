@@ -13,6 +13,8 @@ final class AppModel {
     var needsSettings = false   // set on 401 or missing PAT
     var settingsRequests = 0    // bumped by the menu bar "Settings…" item; the window opens the sheet on change
     var me: AsanaUserRef?
+    /// True while the window shows the persisted result of a previous launch rather than live data.
+    var isShowingCache = false
     /// Wall-clock seconds per phase of the last refresh, for the `--once` diagnostic.
     var lastTimings: [(phase: String, seconds: TimeInterval)] = []
 
@@ -31,6 +33,13 @@ final class AppModel {
 
     /// First refresh now, then one every `settings.refreshMinutes`. Calling it again restarts the timer.
     func start() {
+        if items.isEmpty, let cached = RefreshCache.load() {
+            items = cached.items
+            otherWorktrees = cached.otherWorktrees
+            me = cached.me
+            lastRefreshed = cached.savedAt
+            isShowingCache = true
+        }
         timer?.cancel()
         timer = Task { [weak self] in
             while let self, !Task.isCancelled {
@@ -75,8 +84,10 @@ final class AppModel {
             otherWorktrees = result.otherWorktrees
             lastTimings = result.timings
             lastRefreshed = Date()
+            isShowingCache = false
             banner = nil
             needsSettings = false
+            try? RefreshCache.save(result)
         } catch AsanaError.unauthorized {
             needsSettings = true
             banner = "Asana rejected the token (401)"

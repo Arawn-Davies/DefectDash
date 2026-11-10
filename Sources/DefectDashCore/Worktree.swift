@@ -1,7 +1,7 @@
 import Foundation
 
 /// The read-only git state of one repository: a worktree's host checkout or one of its submodules.
-public struct RepoState: Sendable, Equatable {
+public struct RepoState: Sendable, Equatable, Codable {
     public let path: URL
     public let label: String                 // "host" or the submodule path
     public let branch: String?               // nil when detached
@@ -31,7 +31,7 @@ public struct RepoState: Sendable, Equatable {
     }
 }
 
-public struct Worktree: Sendable, Identifiable, Equatable {
+public struct Worktree: Sendable, Identifiable, Equatable, Codable {
     public var id: String { path.path }
     public let path: URL
     public let system: String

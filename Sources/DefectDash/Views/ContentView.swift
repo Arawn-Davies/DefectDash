@@ -120,7 +120,7 @@ struct ContentView: View {
 
     private var lastRefreshedText: String {
         guard let at = model.lastRefreshed else { return "not refreshed yet" }
-        return "refreshed \(Format.shortAge(at)) ago"
+        return model.isShowingCache ? "cached \(Format.shortAge(at)) ago" : "refreshed \(Format.shortAge(at)) ago"
     }
 }
 

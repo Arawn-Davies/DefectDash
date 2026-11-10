@@ -1,6 +1,6 @@
 import Foundation
 
-public enum ActivityKind: Sendable, Equatable {
+public enum ActivityKind: Sendable, Equatable, Codable {
     case comment(author: String, text: String, viaRelay: Bool)
     case awaitingChanged(from: String?, to: String?)
     case defectStatusChanged(from: Int?, to: Int?)
@@ -9,7 +9,7 @@ public enum ActivityKind: Sendable, Equatable {
     case other(String)
 }
 
-public struct ActivityEvent: Sendable, Identifiable, Equatable {
+public struct ActivityEvent: Sendable, Identifiable, Equatable, Codable {
     public let id: String
     public let at: Date
     public let byGid: String?

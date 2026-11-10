@@ -1,6 +1,6 @@
 import Foundation
 
-public enum Tier: Int, CaseIterable, Sendable, Comparable {
+public enum Tier: Int, CaseIterable, Sendable, Comparable, Codable {
     case needsYou = 1, yoursInHand, unassigned, someoneElses, withThem, closedOnBoard
 
     public var title: String {
@@ -20,7 +20,7 @@ public enum Tier: Int, CaseIterable, Sendable, Comparable {
     public static func < (lhs: Tier, rhs: Tier) -> Bool { lhs.rawValue < rhs.rawValue }
 }
 
-public struct Flags: OptionSet, Sendable, Hashable {
+public struct Flags: OptionSet, Sendable, Hashable, Codable {
     public let rawValue: Int
     public init(rawValue: Int) { self.rawValue = rawValue }
 
@@ -42,7 +42,7 @@ public struct Flags: OptionSet, Sendable, Hashable {
     }
 }
 
-public struct WorkItem: Sendable, Identifiable {
+public struct WorkItem: Sendable, Identifiable, Codable {
     public var id: String { defect.gid }
     public let defect: Defect
     public let worktrees: [Worktree]

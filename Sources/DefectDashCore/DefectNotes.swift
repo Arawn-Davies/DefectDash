@@ -1,7 +1,7 @@
 import Foundation
 
 /// The structured fields of a "Defect Report" form submission, parsed out of a task's `notes`.
-public struct DefectNotes: Sendable, Equatable {
+public struct DefectNotes: Sendable, Equatable, Codable {
     public let raisedBy, dateRaised, deliverable, environment, browser, steps, expected, actual, testCaseId, priority, sprint: String?
     public let raw: String
 

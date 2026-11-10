@@ -13,8 +13,9 @@ if arguments.contains("--help") || arguments.contains("-h") {
 
     Reads the same settings as the DefectDash app (defaults domain \(Settings.bundleIdentifier)) and the same
     Keychain token. Token lookup order: Keychain, $\(TokenSource.environmentKey), --token-file.
-    Keys: j/k move · Enter detail · 1-6 group · / filter · d dimmed · O other worktrees · r refresh
-          o asana · f finder · t terminal · c copy path · ? help · q quit
+    Keys: j/k move · Enter detail · 1-6 group · / filter · d dimmed · O other worktrees · z zoom pane
+          y copy detail · r refresh · o asana · f finder · t terminal · c copy path · ? help · q quit
+    The last refresh is cached in ~/Library/Caches/\(Settings.bundleIdentifier)/ and shown at startup.
     """)
     exit(0)
 }
@@ -50,8 +51,10 @@ guard !settings.sectionGid.isEmpty else {
 
 // MARK: - Actions
 
+/// Runs a command's side effect. Reads the global `state` directly: taking it `inout` here while
+/// `startRefresh()` also touches it was a Swift exclusivity violation that aborted the process on `r`.
 @MainActor
-func perform(_ command: Command, state: inout UIState, startRefresh: () -> Void) -> Bool {
+func perform(_ command: Command) -> Bool {
     switch command {
     case .none: break
     case .quit: return false
@@ -65,6 +68,11 @@ func perform(_ command: Command, state: inout UIState, startRefresh: () -> Void)
         if let wt = state.selectedItem?.primaryWorktree { Shell.run(["/usr/bin/open", "-b", settings.terminalBundleID, wt.path.path]) }
     case .copyPath:
         if let wt = state.selectedItem?.primaryWorktree { Shell.run(["/usr/bin/pbcopy"], stdin: wt.path.path) }
+    case .copyDetail:
+        if let item = state.selectedItem {
+            let text = DetailText.lines(for: item, width: 100).map(\.text).joined(separator: "\n")
+            Shell.run(["/usr/bin/pbcopy"], stdin: text + "\n")
+        }
     }
     return true
 }
@@ -76,6 +84,7 @@ let palette = Palette.detect()
 var state = UIState()
 state.hideDimmed = settings.hideDimmed
 state.refreshMinutes = settings.refreshMinutes
+if let cached = RefreshCache.load() { state.applyCache(cached) }   // something on screen before the first refresh
 var lastRefreshStarted: Date? = nil
 
 @MainActor
@@ -116,7 +125,7 @@ loop: for await event in events {
     case let .keys(keys):
         for key in keys {
             let command = state.apply(key)
-            if !perform(command, state: &state, startRefresh: startRefresh) { break loop }
+            if !perform(command) { break loop }
         }
     case .resize:
         break
@@ -128,7 +137,9 @@ loop: for await event in events {
     case let .refreshed(result):
         state.isRefreshing = false
         switch result {
-        case let .success(r): state.applyRefresh(r)
+        case let .success(r):
+            state.applyRefresh(r)
+            try? RefreshCache.save(r)
         case .failure(AsanaError.unauthorized): state.banner = "Asana rejected the token (401)"
         case let .failure(e as AsanaError): state.banner = "\(e)"
         case let .failure(e): state.banner = e.localizedDescription

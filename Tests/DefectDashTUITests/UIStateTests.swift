@@ -115,6 +115,29 @@ final class UIStateTests: XCTestCase {
         XCTAssertEqual(s.focus, .list)
     }
 
+    func testZoomAndYankKeys() {
+        var s = makeState()
+        XCTAssertFalse(s.zoom)
+        XCTAssertEqual(s.apply(.char("z")), .none)
+        XCTAssertTrue(s.zoom)
+        XCTAssertEqual(s.apply(.char("z")), .none)
+        XCTAssertFalse(s.zoom)
+        XCTAssertEqual(s.apply(.char("y")), .copyDetail)
+    }
+
+    func testCachedDataIsMarkedUntilRefreshArrives() {
+        var s = UIState()
+        s.applyCache(CachedRefresh(items: Fixtures.items(), otherWorktrees: [], me: AsanaUserRef(gid: "100", name: "Dev One"),
+                                   savedAt: Fixtures.T))
+        XCTAssertEqual(s.cachedAt, Fixtures.T)
+        XCTAssertEqual(s.lastRefreshed, Fixtures.T)
+        XCTAssertEqual(s.items.count, 3)
+        s.applyRefresh(RefreshResult(items: Fixtures.items(), otherWorktrees: [], me: AsanaUserRef(gid: "100", name: "Dev One"), timings: []),
+                       at: Fixtures.T.addingTimeInterval(60))
+        XCTAssertNil(s.cachedAt)
+        XCTAssertEqual(s.lastRefreshed, Fixtures.T.addingTimeInterval(60))
+    }
+
     func testFilterModeCollectsTextUntilEnter() {
         var s = makeState()
         _ = s.apply(.char("/"))
@@ -148,6 +171,34 @@ final class RenderTests: XCTestCase {
         XCTAssertTrue(text.contains("Expected result"), text)
         XCTAssertTrue(text.contains("fix/bug-1"), text)
         XCTAssertTrue(text.contains("q quit"), text)
+    }
+
+    func testZoomShowsOnlyTheFocusedPane() {
+        var s = UIState()
+        s.items = Fixtures.items()
+        s.zoom = true
+        s.focus = .detail
+        let detailOnly = Render.frame(state: s, cols: 100, rows: 24, now: Fixtures.T)
+        let detailText = (0..<24).map(detailOnly.line).joined(separator: "\n")
+        XCTAssertFalse(detailText.contains("│"), "no pane separator when zoomed")
+        XCTAssertFalse(detailText.contains("Needs you (1)"), "list hidden when the detail is zoomed")
+        XCTAssertTrue(detailText.contains("Expected result"), detailText)
+
+        s.focus = .list
+        let listOnly = Render.frame(state: s, cols: 100, rows: 24, now: Fixtures.T)
+        let listText = (0..<24).map(listOnly.line).joined(separator: "\n")
+        XCTAssertTrue(listText.contains("Needs you (1)"))
+        XCTAssertFalse(listText.contains("Expected result"), "detail hidden when the list is zoomed")
+    }
+
+    func testStatusMentionsCachedData() {
+        var s = UIState()
+        s.applyCache(CachedRefresh(items: Fixtures.items(), otherWorktrees: [], me: nil ?? AsanaUserRef(gid: "100", name: "Dev One"),
+                                   savedAt: Fixtures.T))
+        s.isRefreshing = true
+        let screen = Render.frame(state: s, cols: 100, rows: 24, now: Fixtures.T.addingTimeInterval(300))
+        let text = (0..<24).map(screen.line).joined(separator: "\n")
+        XCTAssertTrue(text.contains("cached 5m ago"), text)
     }
 
     func testTooSmallShowsMessage() {

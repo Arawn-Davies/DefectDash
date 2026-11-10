@@ -10,7 +10,7 @@ enum Row {
 
 enum Focus: Equatable { case list, detail, filter, help }
 
-enum Command: Equatable { case none, quit, refresh, openAsana, finder, terminal, copyPath, toggleDimmed }
+enum Command: Equatable { case none, quit, refresh, openAsana, finder, terminal, copyPath, copyDetail, toggleDimmed }
 
 /// All UI state; pure value type so it is easy to test. Rendering reads it, key handling mutates it.
 struct UIState {
@@ -18,11 +18,15 @@ struct UIState {
     var otherWorktrees: [Worktree] = []
     var me: AsanaUserRef?
     var lastRefreshed: Date?
+    /// Set while the data on screen came from the on-disk cache rather than a live refresh.
+    var cachedAt: Date?
     var isRefreshing = false
     var banner: String?
     var refreshMinutes = 5
 
     var focus: Focus = .list
+    /// Show only the focused pane, full width (lets a terminal's row-based selection copy one pane).
+    var zoom = false
     var filter = ""
     var hideDimmed = false
     var showOtherWorktrees = false
@@ -128,6 +132,8 @@ struct UIState {
         case .char("f"): return .finder
         case .char("t"): return .terminal
         case .char("c"): return .copyPath
+        case .char("y"): return .copyDetail
+        case .char("z"): zoom.toggle()
         case .char("d"):
             hideDimmed.toggle()
             if selectedItem == nil { selectFirst() }
@@ -157,7 +163,18 @@ struct UIState {
         otherWorktrees = result.otherWorktrees
         me = result.me
         lastRefreshed = date
+        cachedAt = nil
         banner = nil
+        if selectedItem == nil { selectFirst() }
+    }
+
+    /// Shows the last persisted refresh immediately; `applyRefresh` replaces it when live data arrives.
+    mutating func applyCache(_ cached: CachedRefresh) {
+        items = cached.items
+        otherWorktrees = cached.otherWorktrees
+        me = cached.me
+        lastRefreshed = cached.savedAt
+        cachedAt = cached.savedAt
         if selectedItem == nil { selectFirst() }
     }
 }

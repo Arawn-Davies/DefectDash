@@ -13,21 +13,31 @@ enum Render {
             return screen
         }
 
-        let leftWidth = min(64, max(36, cols * 38 / 100))
-        let rightX = leftWidth + 1
-        let rightWidth = cols - rightX
         let bodyTop = 2
-        let bodyBottom = rows - 3   // exclusive; rows-3 = status, rows-2 = hints... plus separator at rows-3
+        let bodyBottom = rows - 3   // exclusive; rows-3 is the bottom rule, rows-2 status, rows-1 hints
         let bodyHeight = bodyBottom - bodyTop
 
         drawTitle(state, screen: screen, cols: cols, now: now)
-        screen.put(x: 0, y: 1, String(repeating: "─", count: leftWidth) + "┬" + String(repeating: "─", count: rightWidth), style: .dimmed)
-        for y in bodyTop..<bodyBottom { screen.put(x: leftWidth, y: y, "│", style: .dimmed) }
-        screen.put(x: 0, y: bodyBottom, String(repeating: "─", count: leftWidth) + "┴" + String(repeating: "─", count: rightWidth), style: .dimmed)
-
-        drawList(state, screen: screen, x: 0, y: bodyTop, width: leftWidth, height: bodyHeight, now: now)
-        drawDetail(state, screen: screen, x: rightX, y: bodyTop, width: rightWidth, height: bodyHeight, now: now)
-        drawStatus(state, screen: screen, y: rows - 2, cols: cols)
+        if state.zoom {
+            // One pane, full width: a terminal's row-based selection then copies only that pane's text.
+            screen.put(x: 0, y: 1, String(repeating: "─", count: cols), style: .dimmed)
+            screen.put(x: 0, y: bodyBottom, String(repeating: "─", count: cols), style: .dimmed)
+            if state.focus == .detail {
+                drawDetail(state, screen: screen, x: 0, y: bodyTop, width: cols, height: bodyHeight, now: now)
+            } else {
+                drawList(state, screen: screen, x: 0, y: bodyTop, width: cols, height: bodyHeight, now: now)
+            }
+        } else {
+            let leftWidth = min(64, max(36, cols * 38 / 100))
+            let rightX = leftWidth + 1
+            let rightWidth = cols - rightX
+            screen.put(x: 0, y: 1, String(repeating: "─", count: leftWidth) + "┬" + String(repeating: "─", count: rightWidth), style: .dimmed)
+            for y in bodyTop..<bodyBottom { screen.put(x: leftWidth, y: y, "│", style: .dimmed) }
+            screen.put(x: 0, y: bodyBottom, String(repeating: "─", count: leftWidth) + "┴" + String(repeating: "─", count: rightWidth), style: .dimmed)
+            drawList(state, screen: screen, x: 0, y: bodyTop, width: leftWidth, height: bodyHeight, now: now)
+            drawDetail(state, screen: screen, x: rightX, y: bodyTop, width: rightWidth, height: bodyHeight, now: now)
+        }
+        drawStatus(state, screen: screen, y: rows - 2, cols: cols, now: now)
         drawHints(state, screen: screen, y: rows - 1, cols: cols)
         if state.focus == .help { drawHelp(screen: screen, cols: cols, rows: rows) }
         return screen
@@ -38,7 +48,13 @@ enum Render {
     private static func drawTitle(_ s: UIState, screen: Screen, cols: Int, now: Date) {
         var parts = ["DefectDash"]
         if let me = s.me?.name { parts.append(me) }
-        if let at = s.lastRefreshed { parts.append("refreshed \(TUIFormat.shortAge(at, now: now)) ago") } else { parts.append("not refreshed yet") }
+        if let cached = s.cachedAt {
+            parts.append("cached \(TUIFormat.shortAge(cached, now: now)) ago")
+        } else if let at = s.lastRefreshed {
+            parts.append("refreshed \(TUIFormat.shortAge(at, now: now)) ago")
+        } else {
+            parts.append("not refreshed yet")
+        }
         parts.append("needs you \(s.items.filter(\.needsYou).count)")
         let left = " " + parts.joined(separator: " · ")
         let right = "every \(s.refreshMinutes)m "
@@ -112,7 +128,7 @@ enum Render {
         }
     }
 
-    private static func drawStatus(_ s: UIState, screen: Screen, y: Int, cols: Int) {
+    private static func drawStatus(_ s: UIState, screen: Screen, y: Int, cols: Int, now: Date) {
         var text: String
         var style: Style = .dimmed
         if s.focus == .filter {
@@ -121,21 +137,24 @@ enum Render {
         } else if let banner = s.banner {
             text = " ⚠ \(banner)"
             style = .fg(.red, bold: true)
+        } else if let cached = s.cachedAt {
+            text = " ◌ showing cached data from \(TUIFormat.dateTime(cached)) (cached \(TUIFormat.shortAge(cached, now: now)) ago)"
+                + (s.isRefreshing ? " · ⟳ refreshing…" : "")
         } else if s.isRefreshing {
             text = " ⟳ refreshing…"
         } else if !s.filter.isEmpty {
             text = " filter: \(s.filter)  (Esc clears)"
         } else {
-            text = " \(s.visibleItems.count) defects shown\(s.hideDimmed ? ", dimmed groups hidden" : "")"
+            text = " \(s.visibleItems.count) defects shown\(s.hideDimmed ? ", dimmed groups hidden" : "")\(s.zoom ? " · zoomed (z)" : "")"
         }
         screen.put(x: 0, y: y, TextLayout.pad(text, width: cols), style: style)
     }
 
     private static func drawHints(_ s: UIState, screen: Screen, y: Int, cols: Int) {
         let candidates = [
-            " j/k move  Enter detail  1-6 group  / filter  d dimmed  O other  r refresh  o asana  f finder  t term  c copy  ? help  q quit",
-            " j/k move  Enter detail  / filter  d dimmed  r refresh  o asana  t term  ? help  q quit",
-            " j/k  Enter  / filter  r refresh  ? help  q quit",
+            " j/k move  Enter detail  1-6 group  / filter  d dimmed  O other  z zoom  y yank  r refresh  o asana  f finder  t term  c copy  ? help  q quit",
+            " j/k move  Enter detail  / filter  d dimmed  z zoom  y yank  r refresh  o asana  t term  ? help  q quit",
+            " j/k  Enter  / filter  z zoom  r refresh  ? help  q quit",
         ]
         let hints = candidates.first { $0.count <= cols } ?? candidates[candidates.count - 1]
         screen.put(x: 0, y: y, TextLayout.pad(hints, width: cols), style: .dimmed)
@@ -152,7 +171,11 @@ enum Render {
             " O                 toggle other worktrees  r            refresh now",
             " o                 open in Asana           f            reveal in Finder",
             " t                 open in terminal        c            copy worktree path",
+            " z                 zoom the focused pane   y            copy the detail text",
             " ?                 this help               q, Ctrl-C    quit",
+            "",
+            " Selecting text: zoom (z) so the pane fills the width, or use your terminal's",
+            " rectangular selection (Option-drag in kitty, iTerm2 and Terminal).",
             "",
             " Esc or ? closes this overlay. ",
         ]

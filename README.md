@@ -174,7 +174,22 @@ at the bottom. Keys: `j`/`k` move, `Enter` focuses the detail, `J`/`K` or
 PgUp/PgDn scroll it, `1`–`6` jump to a group, `/` filter, `d` toggle dimmed
 groups, `O` show other worktrees, `r` refresh, `o` open in Asana, `f` reveal
 in Finder, `t` open in the configured terminal, `c` copy the worktree path,
-`?` help, `q` quit. `o`/`f`/`t`/`c` act on the machine running `defectdash`.
+`z` zoom the focused pane to full width, `y` copy the detail text, `?` help,
+`q` quit. `o`/`f`/`t`/`c`/`y` act on the machine running `defectdash`.
+
+Selecting text with the mouse in a two-pane layout grabs whole rows across
+both panes, because terminal selection is row-based. Press `z` to zoom the
+pane you want and select from that, press `y` to copy the whole detail to the
+clipboard, or use your terminal's rectangular selection (Option-drag in kitty,
+iTerm2 and Terminal.app).
+
+## Startup cache
+
+The last successful refresh is written to
+`~/Library/Caches/io.github.arawn-davies.defectdash/last-refresh.json` (mode
+0600, no token). Both the app and `defectdash` show it immediately on launch,
+marked "cached", and replace it as soon as the first live refresh finishes.
+Delete the file to start cold.
 
 ## Icon and logo
 

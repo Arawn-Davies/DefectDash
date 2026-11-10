@@ -1,7 +1,7 @@
 import Foundation
 
 /// Which side of the engagement a defect is waiting on.
-public enum Awaiting: Sendable {
+public enum Awaiting: String, Sendable, Codable {
     case ours
     case theirs
 }
@@ -27,7 +27,7 @@ public struct AwaitingLabels: Sendable, Equatable {
     }
 }
 
-public struct Defect: Sendable, Identifiable, Equatable {
+public struct Defect: Sendable, Identifiable, Equatable, Codable {
     public let gid: String
     public var id: String { gid }
     public let bugNumber: Int?
