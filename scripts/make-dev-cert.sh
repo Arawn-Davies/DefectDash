@@ -44,18 +44,22 @@ fi
 # Let codesign use the private key non-interactively (asks for your login keychain password on this tty).
 security set-key-partition-list -S apple-tool:,apple:,codesign: -s "$keychain"
 
-# Trust it for code signing. The per-user trust store needs a GUI authorisation dialog; over SSH there is
-# none, so fall back to the admin trust store via sudo (asks for your password on this tty).
-if ! security add-trusted-cert -p codeSign -k "$keychain" "$work/cert.pem" 2>/dev/null; then
-  echo "no GUI session for per-user trust; writing admin trust settings with sudo"
-  sudo security add-trusted-cert -d -r trustRoot -p codeSign -k /Library/Keychains/System.keychain "$work/cert.pem"
+# Optionally trust it for code signing. Trust is NOT required: the Keychain access list matches the signing
+# certificate itself, and scripts/sign.sh only needs the identity to exist. Trust settings need a GUI
+# authorisation dialog, so over SSH this step fails harmlessly.
+if security add-trusted-cert -p codeSign -k "$keychain" "$work/cert.pem" 2>/dev/null; then
+  echo "trusted \"$name\" for code signing"
+else
+  echo "note: could not write trust settings (no GUI session); not needed for signing, continuing"
 fi
 
-if security find-identity -v -p codesigning | grep -q "\"$name\""; then
-  echo "created and trusted identity \"$name\""
-  echo "next: make app (or scripts/release.sh) signs with it automatically; re-import the token once with"
+# Prove the identity is usable by signing a scratch binary.
+cp /usr/bin/true "$work/probe"
+if codesign --force --sign "$name" "$work/probe" 2>/dev/null; then
+  echo "identity \"$name\" is ready: codesign can sign with it"
+  echo "next: make app / make tui / scripts/release.sh sign with it automatically; re-import the token once with"
   echo "      make import-pat PAT_FILE=<path>  so the Keychain item's access list names the signed app."
 else
-  echo "identity was imported but is not listed as valid for code signing; check Keychain Access → My Certificates → \"$name\" → Trust → Code Signing" >&2
+  echo "identity \"$name\" exists but codesign cannot use it (errSecInternalComponent?); re-run to set the key's partition list" >&2
   exit 1
 fi
